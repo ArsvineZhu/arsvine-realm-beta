@@ -81,9 +81,9 @@ export const siteConfig: SiteConfig = {
     linkedin: 'https://x.com/arsvine',  // 图标为 Steam
   },
   assets: {
-    icon: '/avatar.svg',
-    ogImage: '/avatar.svg',
-    twitterImage: '/avatar.svg',
+    icon: '/avatar_transparent.png',
+    ogImage: '/avatar_transparent.png',
+    twitterImage: '/avatar_transparent.png',
   },
   fonts: {
     preconnect: [
