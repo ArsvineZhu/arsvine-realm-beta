@@ -1,6 +1,6 @@
 {
   "name": "portfolio-site",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "index.js",
   "scripts": {
     "dev": "node server.js",
@@ -9,7 +9,7 @@
     "lint": "eslint ."
   },
   "keywords": [],
-  "author": "Your Name",
+  "author": "Arsvine Zhu",
   "license": "MIT",
   "description": "A post-apocalyptic HUD-themed portfolio & blog template built with Next.js 16",
   "engines": {

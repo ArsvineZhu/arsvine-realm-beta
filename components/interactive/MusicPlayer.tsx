@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import styles from './MusicPlayer.module.scss';
+import { musicPlaylist } from '../../data/music';
 
 // 播放器控制图标 (SVG)
 const PlayIcon = () => <svg viewBox="0 0 10 10" width="10" height="10"><polygon points="3,2 8,5 3,8" fill="currentColor" /></svg>;
@@ -16,15 +17,8 @@ const NextIcon = () => <svg viewBox="0 0 10 10" width="10" height="10">
   <rect x="7" y="2" width="1" height="6" fill="currentColor" />
 </svg>;
 
-// Playlist — Replace with your own music files!
-// Place audio files in public/music/ or use external URLs.
-const playlist = [
-  {
-    title: "Your Song Title",
-    artist: "Artist Name",
-    src: "/music/example.mp3"
-  },
-];
+// Playlist is now configured in data/music.ts —— 增删歌曲只需改那个文件，不必动本组件
+const playlist = musicPlaylist;
 
 const DRAG_THRESHOLD = 50; // 拖动切换唱片的最小像素阈值
 
@@ -93,9 +87,8 @@ const MusicPlayer = ({ powerLevel }: { powerLevel: number }) => {
     } else {
       const playPromise = audio.play();
       if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.error("Error playing audio:", error);
-          setIsPlaying(false); // 确保播放失败时状态同步
+        playPromise.catch(() => {
+          setIsPlaying(false); // 资源不可用时静默把状态同步回未播放
         });
       }
     }
@@ -110,7 +103,7 @@ const MusicPlayer = ({ powerLevel }: { powerLevel: number }) => {
   const handleNext = useCallback(() => {
     setCurrentTrackIndex((prevIndex) => (prevIndex + 1) % playlist.length);
   }, []);
-  
+
   // 从播放列表选择歌曲
   const selectTrack = (index) => {
     if (index !== currentTrackIndex) {
@@ -235,17 +228,17 @@ const MusicPlayer = ({ powerLevel }: { powerLevel: number }) => {
       const newFullSrcPath = new URL(newSrc, window.location.origin).pathname;
 
       if (currentFullSrcPath !== newFullSrcPath) { // 仅当歌曲源不同时才加载
-          audioRef.current.src = newSrc;
-          audioRef.current.load();
-          if (isPlaying) { // 如果之前是播放状态，则尝试自动播放新加载的歌曲
-              const playPromise = audioRef.current.play();
-              if (playPromise !== undefined) {
-                  playPromise.catch(error => {
-                    console.error("[Track switch] Autoplay error:", error);
-                    setIsPlaying(false); // 自动播放失败，更新状态
-                  });
-              }
+        audioRef.current.src = newSrc;
+        audioRef.current.load();
+        if (isPlaying) { // 如果之前是播放状态，则尝试自动播放新加载的歌曲
+          const playPromise = audioRef.current.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(error => {
+              console.error("[Track switch] Autoplay error:", error);
+              setIsPlaying(false); // 自动播放失败，更新状态
+            });
           }
+        }
       }
     }
   }, [currentTrackIndex, isPlaying]); // 依赖 currentTrackIndex 与 isPlaying
@@ -269,21 +262,21 @@ const MusicPlayer = ({ powerLevel }: { powerLevel: number }) => {
     const setAudioPlaying = () => setIsPlaying(true); // 音频开始播放
     const setAudioPaused = () => setIsPlaying(false);  // 音频暂停
     const handleEnded = () => { // 音频播放结束，自动播放下一首
-        handleNext(); // 更新歌曲索引
-        // handleNext 会触发上面的 useEffect 来加载并可能播放新歌，这里可选择是否强制播放
-        // 此处增加短暂延时尝试播放，确保 useEffect 中的 src 加载完成
-        setTimeout(() => {
-            if (audioRef.current && audioRef.current.paused) { // 确认是否真的需要播放
-                const playPromise = audioRef.current.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => setIsPlaying(true))
-                               .catch(error => {
-                                   console.error("[Playback ended] Error playing next track:", error);
-                                   setIsPlaying(false);
-                                });
-                }
-            }
-        }, 50);
+      handleNext(); // 更新歌曲索引
+      // handleNext 会触发上面的 useEffect 来加载并可能播放新歌，这里可选择是否强制播放
+      // 此处增加短暂延时尝试播放，确保 useEffect 中的 src 加载完成
+      setTimeout(() => {
+        if (audioRef.current && audioRef.current.paused) { // 确认是否真的需要播放
+          const playPromise = audioRef.current.play();
+          if (playPromise !== undefined) {
+            playPromise.then(() => setIsPlaying(true))
+              .catch(error => {
+                console.error("[Playback ended] Error playing next track:", error);
+                setIsPlaying(false);
+              });
+          }
+        }
+      }, 50);
     };
 
     audio.addEventListener('timeupdate', updateProgress);
@@ -308,55 +301,55 @@ const MusicPlayer = ({ powerLevel }: { powerLevel: number }) => {
     const bars = handleElement.querySelectorAll(`.${styles.handleBar}`);
 
     const handleAnimationIteration = (event) => {
-        const bar = event.target;
-        bar.style.animationPlayState = 'paused'; // 暂停当前动画
-        // 清除该 bar 可能存在的旧 timeout
-        const existingTimeoutIndex = animationTimeouts.current.findIndex(t => t.element === bar);
-        if (existingTimeoutIndex > -1) {
-            clearTimeout(animationTimeouts.current[existingTimeoutIndex].id);
-            animationTimeouts.current.splice(existingTimeoutIndex, 1);
-        }
-        const randomDelay = Math.random() * 900 + 300; // 随机延迟 300ms - 1200ms
-        const timeoutId = setTimeout(() => { // 延迟后恢复动画
-            bar.style.animationPlayState = 'running';
-            const indexToRemove = animationTimeouts.current.findIndex(t => t.element === bar);
-            if (indexToRemove > -1) animationTimeouts.current.splice(indexToRemove, 1);
-        }, randomDelay);
-        animationTimeouts.current.push({ id: timeoutId, element: bar }); // 存储新的 timeout
+      const bar = event.target;
+      bar.style.animationPlayState = 'paused'; // 暂停当前动画
+      // 清除该 bar 可能存在的旧 timeout
+      const existingTimeoutIndex = animationTimeouts.current.findIndex(t => t.element === bar);
+      if (existingTimeoutIndex > -1) {
+        clearTimeout(animationTimeouts.current[existingTimeoutIndex].id);
+        animationTimeouts.current.splice(existingTimeoutIndex, 1);
+      }
+      const randomDelay = Math.random() * 900 + 300; // 随机延迟 300ms - 1200ms
+      const timeoutId = setTimeout(() => { // 延迟后恢复动画
+        bar.style.animationPlayState = 'running';
+        const indexToRemove = animationTimeouts.current.findIndex(t => t.element === bar);
+        if (indexToRemove > -1) animationTimeouts.current.splice(indexToRemove, 1);
+      }, randomDelay);
+      animationTimeouts.current.push({ id: timeoutId, element: bar }); // 存储新的 timeout
     };
 
     if (isPlaying) { // 播放时，为每个 bar 添加迭代监听并启动动画
-        bars.forEach(bar => {
-            bar.style.animationPlayState = 'running';
-            bar.addEventListener('animationiteration', handleAnimationIteration);
-        });
+      bars.forEach(bar => {
+        bar.style.animationPlayState = 'running';
+        bar.addEventListener('animationiteration', handleAnimationIteration);
+      });
     } else { // 暂停时，清除所有 timeout 和监听，并重置动画状态
-        animationTimeouts.current.forEach(t => clearTimeout(t.id));
-        animationTimeouts.current = [];
-        bars.forEach(bar => {
-            bar.removeEventListener('animationiteration', handleAnimationIteration);
-            bar.style.animationPlayState = ''; 
-        });
+      animationTimeouts.current.forEach(t => clearTimeout(t.id));
+      animationTimeouts.current = [];
+      bars.forEach(bar => {
+        bar.removeEventListener('animationiteration', handleAnimationIteration);
+        bar.style.animationPlayState = '';
+      });
     }
 
     return () => { // 清理
-        animationTimeouts.current.forEach(t => clearTimeout(t.id));
-        animationTimeouts.current = [];
-        if (handleElement) {
-             const currentBars = handleElement.querySelectorAll(`.${styles.handleBar}`);
-             currentBars.forEach(bar => {
-                 bar.removeEventListener('animationiteration', handleAnimationIteration);
-                 bar.style.animationPlayState = '';
-             });
-        }
+      animationTimeouts.current.forEach(t => clearTimeout(t.id));
+      animationTimeouts.current = [];
+      if (handleElement) {
+        const currentBars = handleElement.querySelectorAll(`.${styles.handleBar}`);
+        currentBars.forEach(bar => {
+          bar.removeEventListener('animationiteration', handleAnimationIteration);
+          bar.style.animationPlayState = '';
+        });
+      }
     };
   }, [isPlaying]);
 
   return (
     <div className={`${styles.playerContainer} ${isOpen ? styles.open : ''}`}>
       {/* 抽屉把手：点击切换抽屉，播放时显示动画条和当前歌曲名 (若收起) */}
-      <div 
-        ref={handleRef} 
+      <div
+        ref={handleRef}
         className={`
           ${styles.handle} 
           ${!isOpen && isPlaying ? styles.expanded : ''} 
@@ -381,11 +374,15 @@ const MusicPlayer = ({ powerLevel }: { powerLevel: number }) => {
           </div>
         )}
       </div>
-      
-      <audio ref={audioRef} preload="metadata"></audio> {/* 音频播放核心元素 */}
+
+      <audio
+        ref={audioRef}
+        preload="metadata"
+        onError={() => { setIsPlaying(false); }}
+      />
 
       {/* 唱片拖动切换机制容器 */}
-      <div 
+      <div
         ref={vinylContainerRef}
         className={styles.vinylMechanismContainer}
         onMouseDown={handleMouseDown}
@@ -393,37 +390,37 @@ const MusicPlayer = ({ powerLevel }: { powerLevel: number }) => {
       >
         <div className={styles.vinylPlatter}> {/* 唱盘 (固定部分) */}
           {/* 当前播放的唱片 */}
-          <div 
+          <div
             className={`${styles.vinylRecord} ${isPlaying ? styles.recordSpinning : ''}`}
-            style={{ transform: `translateX(${dragOffsetX}px)`}}
+            style={{ transform: `translateX(${dragOffsetX}px)` }}
           >
-            <div className={styles.vinylLabel}></div> {/* 唱片中心标签 */} 
+            <div className={styles.vinylLabel}></div> {/* 唱片中心标签 */}
           </div>
           {/* 即将进入的唱片 (拖动时预览) */}
           {incomingTrackIndex !== -1 && incomingTrack && (
-             <div 
-                className={`${styles.vinylRecord} ${styles.incomingVinylRecord}`}
-                style={{ 
-                  transform: `translateX(${incomingTrackOffsetX}px)`,
-                  transition: isDragging ? 'none' : 'transform 0.3s ease-out', // 拖动时无过渡，松开时有过渡
-                  opacity: 1 // 始终可见，通过位置控制显示
-                }}
-             >
-               <div className={styles.vinylLabel}></div> 
-             </div>
+            <div
+              className={`${styles.vinylRecord} ${styles.incomingVinylRecord}`}
+              style={{
+                transform: `translateX(${incomingTrackOffsetX}px)`,
+                transition: isDragging ? 'none' : 'transform 0.3s ease-out', // 拖动时无过渡，松开时有过渡
+                opacity: 1 // 始终可见，通过位置控制显示
+              }}
+            >
+              <div className={styles.vinylLabel}></div>
+            </div>
           )}
         </div>
 
         {/* 唱臂组件：点击区域控制播放/暂停，播放时有动画 */}
         <div className={`${styles.tonearmAssembly} ${isPlaying ? styles.tonearmPlaying : ''}`}>
-          <div 
+          <div
             className={styles.tonearmHitbox} // 唱臂的点击热区
             onClick={togglePlay}
             title={isPlaying ? "暂停" : "播放"}
           ></div>
-          <div 
+          <div
             className={`${styles.tonearm} ${!isFullPower ? styles.tonearmLowPower : ''}`}
-            style={{ boxShadow: isPlaying && isFullPower ? '0 0 5px rgba(var(--ark-primary-rgb), 0.3)' : 'none'}}
+            style={{ boxShadow: isPlaying && isFullPower ? '0 0 5px rgba(var(--ark-primary-rgb), 0.3)' : 'none' }}
           />
         </div>
       </div>
@@ -434,7 +431,7 @@ const MusicPlayer = ({ powerLevel }: { powerLevel: number }) => {
           <div className={styles.trackInfo}>
             <div className={styles.trackTitle}>{displayTitle}</div>
           </div>
-          <button 
+          <button
             className={`${styles.playlistToggleButton} ${!isFullPower ? styles.toggleButtonLowPower : ''}`}
             onClick={togglePlaylist}
             title={isPlaylistVisible ? "收起列表" : "展开列表"}
@@ -446,12 +443,12 @@ const MusicPlayer = ({ powerLevel }: { powerLevel: number }) => {
           <div ref={progressBarRef} className={styles.progressBar}></div>
         </div>
       </div>
-      
+
       {/* 播放列表 */}
       <div className={`${styles.playlistContainer} ${isPlaylistVisible ? styles.visible : ''}`}>
         {playlist.map((track, index) => (
-          <div 
-            key={index} 
+          <div
+            key={index}
             className={`${styles.playlistItem} ${index === currentTrackIndex ? styles.activePlaylistItem : ''}`}
             onClick={() => selectTrack(index)}
           >

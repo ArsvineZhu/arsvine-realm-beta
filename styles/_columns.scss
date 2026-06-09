@@ -12,16 +12,36 @@
     animation-name: lineRetract !important;
     animation-duration: 0.25s !important;
 
-    &:nth-child(2) { animation-delay: 0.12s !important; }
-    &:nth-child(3) { animation-delay: 0.09s !important; }
-    &:nth-child(4) { animation-delay: 0.06s !important; }
-    &:nth-child(5) { animation-delay: 0.03s !important; }
-    &:nth-child(6) { animation-delay: 0s !important; }
-    &:nth-child(7) { animation-delay: 0.15s !important; }
-    &:nth-child(8) { animation-delay: 0.15s !important; }
+    &:nth-child(2) {
+      animation-delay: 0.12s !important;
+    }
+
+    &:nth-child(3) {
+      animation-delay: 0.09s !important;
+    }
+
+    &:nth-child(4) {
+      animation-delay: 0.06s !important;
+    }
+
+    &:nth-child(5) {
+      animation-delay: 0.03s !important;
+    }
+
+    &:nth-child(6) {
+      animation-delay: 0s !important;
+    }
+
+    &:nth-child(7) {
+      animation-delay: 0.15s !important;
+    }
+
+    &:nth-child(8) {
+      animation-delay: 0.15s !important;
+    }
   }
 
-  .column .verticalText .charItem > div {
+  .column .verticalText .charItem>div {
     animation: charRetract 0.2s ease-in forwards !important;
   }
 }
@@ -29,49 +49,60 @@
 // ===== 负色模式覆写 (columns) =====
 .inverted {
   .column:hover:not(.nonInteractive) {
-     &:not(.worksColumn) {
-       background-color: rgba(var(--ark-highlight-green-rgb), 0.08);
-       &::after, &::before {
-          background: var(--ark-highlight-green);
-       }
-       .verticalText .charItem > div {
-          color: var(--ark-highlight-green);
-          text-shadow: 0 0 8px var(--ark-highlight-green);
-       }
-     }
-     .hudOverlay::after {
-        background: repeating-linear-gradient(
-          to bottom,
+    &:not(.worksColumn) {
+      background-color: rgba(var(--ark-highlight-green-rgb), 0.08);
+
+      &::after,
+      &::before {
+        background: var(--ark-highlight-green);
+      }
+
+      .verticalText .charItem>div {
+        color: var(--ark-highlight-green);
+        text-shadow: 0 0 8px var(--ark-highlight-green);
+      }
+    }
+
+    .hudOverlay::after {
+      background: repeating-linear-gradient(to bottom,
           transparent,
           transparent 2px,
           rgba(var(--ark-highlight-green-rgb), 0.2) 2px,
-          rgba(var(--ark-highlight-green-rgb), 0.2) 3px
-        );
-     }
-     .cornerHudTopLeft, .cornerHudBottomRight {
-        border-color: var(--ark-highlight-green);
-        filter: drop-shadow(0 0 3px var(--ark-highlight-green));
-     }
-     .imageHudSquare {
-        background-color: var(--ark-highlight-green);
-        filter: drop-shadow(0 0 2px var(--ark-highlight-green));
-     }
-     .imageHudText {
-        color: var(--ark-highlight-green);
-        text-shadow: 0 0 3px rgba(var(--ark-highlight-green-rgb), 0.5);
-     }
-     .taskSquare, .taskLine {
-        background-color: var(--ark-highlight-green);
-     }
-     .taskText {
-        color: var(--ark-highlight-green);
-     }
-     .branchSquare {
-        background-color: var(--ark-highlight-green);
-     }
-     .branchText {
-        color: var(--ark-highlight-green);
-     }
+          rgba(var(--ark-highlight-green-rgb), 0.2) 3px);
+    }
+
+    .cornerHudTopLeft,
+    .cornerHudBottomRight {
+      border-color: var(--ark-highlight-green);
+      filter: drop-shadow(0 0 3px var(--ark-highlight-green));
+    }
+
+    .imageHudSquare {
+      background-color: var(--ark-highlight-green);
+      filter: drop-shadow(0 0 2px var(--ark-highlight-green));
+    }
+
+    .imageHudText {
+      color: var(--ark-highlight-green);
+      text-shadow: 0 0 3px rgba(var(--ark-highlight-green-rgb), 0.5);
+    }
+
+    .taskSquare,
+    .taskLine {
+      background-color: var(--ark-highlight-green);
+    }
+
+    .taskText {
+      color: var(--ark-highlight-green);
+    }
+
+    .branchSquare {
+      background-color: var(--ark-highlight-green);
+    }
+
+    .branchText {
+      color: var(--ark-highlight-green);
+    }
   }
 }
 
@@ -104,10 +135,16 @@
           height: 2px;
           background: var(--ark-highlight-green);
         }
-        &::after { bottom: 0; }
-        &::before { top: 0; }
 
-        .verticalText .charItem > div {
+        &::after {
+          bottom: 0;
+        }
+
+        &::before {
+          top: 0;
+        }
+
+        .verticalText .charItem>div {
           transform: scale(1.15);
           color: var(--ark-highlight-green);
           text-shadow: 0 0 8px var(--ark-highlight-green);
@@ -123,12 +160,29 @@
 }
 
 // 桌面端列定位（从 inline style 迁移到 CSS）
-.column0 { left: 0%; }
-.column1 { left: 16%; }
-.column2 { left: 32%; }
-.column3 { left: 48%; }
-.column4 { left: 64%; }
-.column5 { left: 80%; }
+.column0 {
+  left: 0%;
+}
+
+.column1 {
+  left: 16%;
+}
+
+.column2 {
+  left: 32%;
+}
+
+.column3 {
+  left: 48%;
+}
+
+.column4 {
+  left: 64%;
+}
+
+.column5 {
+  left: 80%;
+}
 
 // 垂直线条
 .verticalLine {
@@ -153,12 +207,12 @@
         animation-delay: #{$i * 0.15}s;
       }
     }
-    
+
     &:nth-child(-n+3) {
       animation-name: lineAppearTopDown;
       transform-origin: top;
     }
-    
+
     &:nth-child(n+4) {
       animation-name: lineAppearBottomUp;
       transform-origin: bottom;
@@ -172,12 +226,10 @@
     top: 0;
     width: 3px;
     height: 100%;
-    background-image: linear-gradient(
-      to bottom,
-      var(--ark-highlight-green) 0%,
-      rgba(178, 242, 187, 0.5) 15%,
-      transparent 40%
-    );
+    background-image: linear-gradient(to bottom,
+        var(--ark-highlight-green) 0%,
+        rgba(178, 242, 187, 0.5) 15%,
+        transparent 40%);
     background-size: 100% 200%;
     background-repeat: no-repeat;
     background-position: 0% -100%;
@@ -191,7 +243,7 @@
     transform: translateX(-50%) scaleY(1);
     animation: pulseMeteor 2s ease-out forwards;
   }
-  
+
   &.pulsingReverse::after {
     transform: translateX(-50%) scaleY(-1);
     animation: pulseMeteorReverse 2s ease-out forwards;
@@ -206,11 +258,14 @@
   justify-content: center;
   transform: translateY(10px);
   transition: transform 0.3s ease;
-  max-width: 100%; /* 新增：确保不超过父容器宽度 */
-  overflow: hidden; /* 新增：隐藏溢出内容 */
-  
+  max-width: 100%;
+  /* 新增：确保不超过父容器宽度 */
+  overflow: hidden;
+  /* 新增：隐藏溢出内容 */
+
   .charItem {
-    margin: 8px 0; /* 修改：减小垂直间距 */
+    margin: 8px 0;
+    /* 修改：减小垂直间距 */
     transform: skewX(15deg);
     color: rgba(200, 200, 200, 0.5);
     transition: all 0.1s ease;
@@ -218,11 +273,16 @@
     font-family: var(--font-display);
     font-size: var(--fs-sub);
     line-height: 1;
-    white-space: nowrap; /* 新增：防止文本换行 */
-    text-overflow: ellipsis; /* 新增：溢出时显示省略号 */
-    overflow: hidden; /* 新增：确保单个条目溢出时也被处理 */
-    width: 100%; /* 新增：让省略号能够正确计算 */
-    text-align: center; /* 新增：确保文本居中 */
+    white-space: nowrap;
+    /* 新增：防止文本换行 */
+    text-overflow: ellipsis;
+    /* 新增：溢出时显示省略号 */
+    overflow: hidden;
+    /* 新增：确保单个条目溢出时也被处理 */
+    width: 100%;
+    /* 新增：让省略号能够正确计算 */
+    text-align: center;
+    /* 新增：确保文本居中 */
   }
 }
 
@@ -241,8 +301,10 @@
   // REMOVED overflow: visible !important; for testing
   // Now relies on parent (.column/.rightPanel) overflow: hidden
 
-  &::before, // Main canvas for unique hover animations
-  &::after { // Scanlines (common animation)
+  &::before,
+  // Main canvas for unique hover animations
+  &::after {
+    // Scanlines (common animation)
     content: '';
     position: absolute;
     opacity: 0;
@@ -250,105 +312,114 @@
   }
 
   // 共享的扫描线样式 (保持不变)
-  &::after { // Scanlines
+  &::after {
+    // Scanlines
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: repeating-linear-gradient(
-      to bottom,
-      transparent,
-      transparent 2px,
-      rgba(178, 242, 187, 0.2) 2px, // This color is hardcoded here but overridden in .inverted
-      rgba(178, 242, 187, 0.2) 3px
-    );
+    background: repeating-linear-gradient(to bottom,
+        transparent,
+        transparent 2px,
+        rgba(178, 242, 187, 0.2) 2px, // This color is hardcoded here but overridden in .inverted
+        rgba(178, 242, 187, 0.2) 3px);
     background-size: 100% 6px;
     filter: blur(0.3px);
     background-position: 0 0;
-    z-index: 1; 
+    z-index: 1;
     transition: opacity 0.2s ease-out, background 0.5s ease-in-out; // ADDED background transition
   }
 
   // 清除旧的 ::before 基础方框样式 
   // 新的基础样式将在具体动画中按需设置 
-  &::before { 
+  &::before {
     // Basic positioning/transform origin if needed, otherwise animation sets all
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     // Ensure main animation is above scanlines
-    z-index: 2; 
+    z-index: 2;
   }
 }
 
 // 共享的角标样式
 .cornerHudTopLeft,
 .cornerHudBottomRight {
-    content: '';
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    border-color: var(--ark-highlight-green);
-    border-style: solid;
-    border-width: 0;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease-out, border-color 0.5s ease-in-out, filter 0.5s ease-in-out; // MODIFIED transition
-    filter: drop-shadow(0 0 3px var(--ark-highlight-green));
-    z-index: 3; // Above main animation
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: var(--ark-highlight-green);
+  border-style: solid;
+  border-width: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-out, border-color 0.5s ease-in-out, filter 0.5s ease-in-out; // MODIFIED transition
+  filter: drop-shadow(0 0 3px var(--ark-highlight-green));
+  z-index: 3; // Above main animation
 }
 
-.cornerHudTopLeft { top: 8px; left: 8px; border-top-width: 2px; border-left-width: 2px; }
+.cornerHudTopLeft {
+  top: 8px;
+  left: 8px;
+  border-top-width: 2px;
+  border-left-width: 2px;
+}
 
-.cornerHudBottomRight { bottom: 8px; right: 8px; border-bottom-width: 2px; border-right-width: 2px; }
+.cornerHudBottomRight {
+  bottom: 8px;
+  right: 8px;
+  border-bottom-width: 2px;
+  border-right-width: 2px;
+}
 
 .imageHud {
-    position: absolute;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    z-index: 5; // Highest z-index
-    opacity: 0;
-    transform: translateY(5px); // Initial offset for animation
-    pointer-events: none;
-    transition: opacity 0.2s ease-out, transform 0.2s ease-out; // Fade out
-    // Add white-space nowrap to prevent text wrapping
-    white-space: nowrap; 
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 5; // Highest z-index
+  opacity: 0;
+  transform: translateY(5px); // Initial offset for animation
+  pointer-events: none;
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out; // Fade out
+  // Add white-space nowrap to prevent text wrapping
+  white-space: nowrap;
 }
 
 .imageHudSquare {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    background-color: var(--ark-highlight-green);
-    filter: drop-shadow(0 0 2px var(--ark-highlight-green));
-    transition: background-color 0.5s ease-in-out, filter 0.5s ease-in-out; // ADDED transition
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: var(--ark-highlight-green);
+  filter: drop-shadow(0 0 2px var(--ark-highlight-green));
+  transition: background-color 0.5s ease-in-out, filter 0.5s ease-in-out; // ADDED transition
 }
 
 .imageHudText {
-    font-family: var(--font-mono);
-    font-size: var(--fs-base);
-    color: var(--ark-highlight-green);
-    letter-spacing: 1px;
-    font-weight: bold;
-    text-shadow: 0 0 3px rgba(178, 242, 187, 0.5); // This color is hardcoded here but overridden in .inverted
-    transition: color 0.5s ease-in-out, text-shadow 0.5s ease-in-out; // ADDED transition
+  font-family: var(--font-mono);
+  font-size: var(--fs-base);
+  color: var(--ark-highlight-green);
+  letter-spacing: 1px;
+  font-weight: bold;
+  text-shadow: 0 0 3px rgba(178, 242, 187, 0.5); // This color is hardcoded here but overridden in .inverted
+  transition: color 0.5s ease-in-out, text-shadow 0.5s ease-in-out; // ADDED transition
 }
 
 // --- 通用列悬停效果 (保持不变) --- 
 .column:hover:not(.nonInteractive) {
-  background-color: rgba(178, 242, 187, 0.08); 
+  background-color: rgba(178, 242, 187, 0.08);
 
-  .verticalText .charItem > div {
+  .verticalText .charItem>div {
     transform: scale(1.15);
     color: var(--ark-highlight-green);
     text-shadow: 0 0 8px var(--ark-highlight-green);
   }
 
   // 触发共享的扫描线动画
-  .hudOverlay::after { 
-      animation: scanHud 1.5s linear infinite,
-                 fadeInScanlines 0.2s ease-out forwards;
+  .hudOverlay::after {
+    animation: scanHud 1.5s linear infinite,
+      fadeInScanlines 0.2s ease-out forwards;
   }
 
   // 触发共享的角标动画
@@ -359,17 +430,19 @@
 
   // 触发共享的图片HUD淡入动画 (位置由具体规则决定)
   .imageHud {
-      animation: fadeInImageHud 0.4s ease-out 0.3s forwards;
+    animation: fadeInImageHud 0.4s ease-out 0.3s forwards;
   }
 }
 
 // Column 0 (WORKS - Revert to Skewed Box)
 .column0:hover:not(.nonInteractive) {
-  .hudOverlay::before { 
+  .hudOverlay::before {
     // Revert to the original skewed box animation
     animation: hudExpandBox0 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
   }
-  .imageHud { // Unique Position
+
+  .imageHud {
+    // Unique Position
     bottom: 15px;
     left: 15px;
   }
@@ -381,7 +454,7 @@
     position: absolute;
     bottom: 0;
     left: 50%;
-    width: 4px; 
+    width: 4px;
     height: 100%;
     background-color: var(--ark-highlight-green);
     opacity: 0;
@@ -390,15 +463,20 @@
     animation: buildTowerScale 1.8s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
     filter: drop-shadow(0 0 4px var(--ark-highlight-green));
   }
-  .imageHud { top: 15px; right: 15px; }
+
+  .imageHud {
+    top: 15px;
+    right: 15px;
+  }
 
   // --- Update branch animation delays based on 1.8s duration ---
-  
+
   // 分支 1 (Right) - 50% 处
   .branch1 {
     animation: slideOutRight 0.5s ease-out forwards;
     animation-delay: 0.90s; // Updated: 1.8s * 0.5
   }
+
   .branch1 .branchText {
     animation: fadeInTextDown 0.4s ease-out forwards;
     animation-delay: 1.20s; // Updated: 0.90s + 0.3s
@@ -409,7 +487,8 @@
     animation: slideOutLeft 0.5s ease-out forwards;
     animation-delay: 0.72s; // Updated: 1.8s * 0.4
   }
-   .branch2 .branchText {
+
+  .branch2 .branchText {
     animation: fadeInTextDown 0.4s ease-out forwards;
     animation-delay: 1.02s; // Updated: 0.72s + 0.3s
   }
@@ -419,6 +498,7 @@
     animation: slideOutRight 0.5s ease-out forwards;
     animation-delay: 0.54s; // Updated: 1.8s * 0.3
   }
+
   .branch3 .branchText {
     animation: fadeInTextDown 0.4s ease-out forwards;
     animation-delay: 0.84s; // Updated: 0.54s + 0.3s
@@ -429,6 +509,7 @@
     animation: slideOutLeft 0.5s ease-out forwards;
     animation-delay: 0.36s; // Updated: 1.8s * 0.2
   }
+
   .branch4 .branchText {
     animation: fadeInTextDown 0.4s ease-out forwards;
     animation-delay: 0.66s; // Updated: 0.36s + 0.3s
@@ -437,61 +518,63 @@
 
 // Column 3 (LIFE - Pulse) - Replaced with ECG
 .column3:hover:not(.nonInteractive) {
+
   // --- 恢复: 上方 ECG 波形样式 --- 
   .hudOverlay::before {
-    content: ''; 
+    content: '';
     position: absolute;
     left: 0;
     width: 100%;
-    height: 40px; 
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='50' viewBox='0 0 100 50'%3E%3Cpath d='M0,25 L20,25 L25,10 L35,40 L40,25 L60,25 L65,15 L75,35 L80,25 L100,25' stroke='rgb(178, 242, 187)' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); 
+    height: 40px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='50' viewBox='0 0 100 50'%3E%3Cpath d='M0,25 L20,25 L25,10 L35,40 L40,25 L60,25 L65,15 L75,35 L80,25 L100,25' stroke='rgb(178, 242, 187)' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
     background-repeat: repeat-x;
-    background-size: 50px 40px; 
+    background-size: 50px 40px;
     // opacity: 0; // Base opacity is 0, hover sets it to 0.8
     animation-name: ecgScroll; // REMOVED fadeInEcg
-    animation-duration: 1.5s;      
-    animation-timing-function: linear; 
-    animation-iteration-count: infinite; 
-    animation-fill-mode: none;     
-    animation-delay: 0s; 
-    filter: drop-shadow(0 0 2px var(--ark-highlight-green)); 
+    animation-duration: 1.5s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-fill-mode: none;
+    animation-delay: 0s;
+    filter: drop-shadow(0 0 2px var(--ark-highlight-green));
     top: 50%;
-    transform: translateY(-75px); 
+    transform: translateY(-75px);
     background-position-x: 0;
-    animation-direction: normal; 
-    
+    animation-direction: normal;
+
     opacity: 0.8; // Set target opacity directly
     transition: opacity 0.4s ease-out 0.1s; // ADDED transition for smooth fade-in
   }
 
   // --- 下方 ECG 波形样式 ---
   .hudOverlay::after {
-    content: ''; 
+    content: '';
     position: absolute;
     left: 0;
     width: 100%;
-    height: 40px; 
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='50' viewBox='0 0 100 50'%3E%3Cpath d='M0,25 L20,25 L25,10 L35,40 L40,25 L60,25 L65,15 L75,35 L80,25 L100,25' stroke='rgb(178, 242, 187)' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); 
+    height: 40px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='50' viewBox='0 0 100 50'%3E%3Cpath d='M0,25 L20,25 L25,10 L35,40 L40,25 L60,25 L65,15 L75,35 L80,25 L100,25' stroke='rgb(178, 242, 187)' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
     background-repeat: repeat-x;
-    background-size: 50px 40px; 
+    background-size: 50px 40px;
     // opacity: 0; // Base opacity is 0, hover sets it to 0.8
     animation-name: ecgScroll; // REMOVED fadeInEcg
-    animation-duration: 1.5s;      
-    animation-timing-function: linear; 
-    animation-iteration-count: infinite; 
-    animation-fill-mode: none;     
-    animation-delay: 0s; 
-    filter: drop-shadow(0 0 2px var(--ark-highlight-green)); 
+    animation-duration: 1.5s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-fill-mode: none;
+    animation-delay: 0s;
+    filter: drop-shadow(0 0 2px var(--ark-highlight-green));
     top: 50%;
-    transform: translateY(75px); 
-    background-position-x: 0; 
-    animation-direction: reverse; 
-    
+    transform: translateY(75px);
+    background-position-x: 0;
+    animation-direction: reverse;
+
     opacity: 0.8; // Set target opacity directly
     transition: opacity 0.4s ease-out 0.1s; // ADDED transition for smooth fade-in
   }
 
-  .imageHud { // Unique Position (keep from original)
+  .imageHud {
+    // Unique Position (keep from original)
     bottom: 15px;
     right: 15px;
   }
@@ -499,52 +582,86 @@
 
 // Column 4 (CONTACT - Radar/Ripple - Inverted Pink)
 .column4:hover:not(.nonInteractive) {
+
   // --- 雷达扫描样式 --- (保持不变)
-  .hudOverlay::before { 
+  .hudOverlay::before {
     // Restore 15deg conic-gradient scan
-    animation: radarScan 2.5s linear infinite; 
-    width: 70%; 
+    animation: radarScan 2.5s linear infinite;
+    width: 70%;
     height: 70%;
-    border-radius: 50%; 
+    border-radius: 50%;
     // Restore 15 degree angle
-    background: conic-gradient(from 0deg, 
+    background: conic-gradient(from 0deg,
         rgba(178, 242, 187, 0.5) 0deg 15deg, // 15 degrees beam
         transparent 15.1deg 360deg);
-    border: none; 
-    opacity: 0.8; 
+    border: none;
+    opacity: 0.8;
     // Ensure z-index is appropriate if not already set
-    z-index: 1; 
+    z-index: 1;
   }
-  
-  // --- 波纹动画和位置 --- (修改: 调整位置，保持错开动画)
-  .ripple1, .ripple2, .ripple3 {
-      animation-name: contactRippleExpandShadow;
-      animation-duration: 1.8s; 
-      animation-iteration-count: infinite;
-      animation-timing-function: ease-out;
-      // Base styles like position absolute should be on .radarRipple
-  }
-  // --- 修改: 调整位置使其更错落 --- 
-  .ripple1 { top: 25%; left: 15%; width: 40px; height: 40px; animation-delay: 0s; } // 修改: left 从 20% 改为 15% (向左)
-  .ripple2 { top: 70%; left: 60%; width: 60px; height: 60px; animation-delay: 0.4s; } // 修改: left 从 55% 改为 60% (向右)
-  .ripple3 { top: 45%; left: 75%; width: 50px; height: 50px; animation-delay: 0.8s; } // 也调整了大小和位置
 
-  .imageHud { /* position unchanged */ top: 15px; left: 15px; }
+  // --- 波纹动画和位置 --- (修改: 调整位置，保持错开动画)
+  .ripple1,
+  .ripple2,
+  .ripple3 {
+    animation-name: contactRippleExpandShadow;
+    animation-duration: 1.8s;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-out;
+    // Base styles like position absolute should be on .radarRipple
+  }
+
+  // --- 修改: 调整位置使其更错落 --- 
+  .ripple1 {
+    top: 25%;
+    left: 15%;
+    width: 40px;
+    height: 40px;
+    animation-delay: 0s;
+  }
+
+  // 修改: left 从 20% 改为 15% (向左)
+  .ripple2 {
+    top: 70%;
+    left: 60%;
+    width: 60px;
+    height: 60px;
+    animation-delay: 0.4s;
+  }
+
+  // 修改: left 从 55% 改为 60% (向右)
+  .ripple3 {
+    top: 45%;
+    left: 75%;
+    width: 50px;
+    height: 50px;
+    animation-delay: 0.8s;
+  }
+
+  // 也调整了大小和位置
+
+  .imageHud {
+    /* position unchanged */
+    top: 15px;
+    left: 15px;
+  }
 }
 
 // Column 5 (ABOUT - Focus + 5 Random HUDs)
 .column5:hover:not(.nonInteractive) {
   overflow: visible; // 新增: 允许 HUD 溢出此列
-  .hudOverlay::before { 
+
+  .hudOverlay::before {
     animation: aboutFocus 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
-  
+
   // Main centered image HUD - no change to position, but adjust animation name if needed
-  > .imageHud { // Use direct child selector '>' to target the main one
+  >.imageHud {
+    // Use direct child selector '>' to target the main one
     bottom: 50%;
     left: 15px;
-    transform: translateY(50%); 
-    animation: fadeInImageHudCentered 0.4s ease-out 0.3s forwards; 
+    transform: translateY(50%);
+    animation: fadeInImageHudCentered 0.4s ease-out 0.3s forwards;
   }
 
   // Style and position the 5 random HUDs on hover
@@ -553,11 +670,40 @@
     animation: fadeInImageHud 0.4s ease-out forwards;
   }
 
-  .randomHud1 { top: 10%; left: 25%; animation-delay: 0.35s; }
-  .randomHud2 { top: 30%; left: 80%; animation-delay: 0.45s; transform: scale(0.9); } // Slightly smaller
-  .randomHud3 { top: 75%; left: 10%; animation-delay: 0.4s; transform: scale(1.1); } // Slightly larger
-  .randomHud4 { top: 85%; left: 60%; animation-delay: 0.5s; }
-  .randomHud5 { top: 5%; left: 55%; animation-delay: 0.55s; transform: scale(0.95); } 
+  .randomHud1 {
+    top: 10%;
+    left: 25%;
+    animation-delay: 0.35s;
+  }
+
+  .randomHud2 {
+    top: 30%;
+    left: 80%;
+    animation-delay: 0.45s;
+    transform: scale(0.9);
+  }
+
+  // Slightly smaller
+  .randomHud3 {
+    top: 75%;
+    left: 10%;
+    animation-delay: 0.4s;
+    transform: scale(1.1);
+  }
+
+  // Slightly larger
+  .randomHud4 {
+    top: 85%;
+    left: 60%;
+    animation-delay: 0.5s;
+  }
+
+  .randomHud5 {
+    top: 5%;
+    left: 55%;
+    animation-delay: 0.55s;
+    transform: scale(0.95);
+  }
 }
 
 // --- 修改: radarRipple 基础样式 (修改: 初始边框宽度设为 1px) ---
@@ -571,30 +717,35 @@
   opacity: 0; // 初始隐藏
   pointer-events: none;
   transform: translate(-50%, -50%) scale(0.1); // 初始缩小并居中
-  transform-origin: center center; 
+  transform-origin: center center;
   z-index: 2; // 在雷达扫描之上
 }
 
 // 默认隐藏非 worksColumn 的上下线
 .column:not(.worksColumn)::before,
 .column:not(.worksColumn)::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 30%;
-    height: 2px;
-    background: var(--ark-highlight-green);
-    opacity: 0; // 默认隐藏
-    transition: opacity 0.2s ease-out;
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30%;
+  height: 2px;
+  background: var(--ark-highlight-green);
+  opacity: 0; // 默认隐藏
+  transition: opacity 0.2s ease-out;
 }
 
-.column:not(.worksColumn)::before { top: 0; }
+.column:not(.worksColumn)::before {
+  top: 0;
+}
 
-.column:not(.worksColumn)::after { bottom: 0; }
+.column:not(.worksColumn)::after {
+  bottom: 0;
+}
 
 // 在 hover 时显示非 worksColumn 的上下线
 .column:not(.worksColumn):hover:not(.nonInteractive) {
+
   &::before,
   &::after {
     opacity: 1;
@@ -634,8 +785,8 @@
   background-color: var(--ark-highlight-green);
   filter: drop-shadow(0 0 2px var(--ark-highlight-green));
   margin-right: 8px;
-  flex-shrink: 0; 
-  opacity: 0; 
+  flex-shrink: 0;
+  opacity: 0;
   transition: background-color 0.5s ease-in-out, filter 0.5s ease-in-out; // ADDED transition
 }
 
@@ -653,22 +804,22 @@
   font-size: var(--fs-base);
   letter-spacing: 0.5px;
   text-shadow: 0 0 3px rgba(178, 242, 187, 0.5);
-  opacity: 0; 
-  transform: translateX(0); 
+  opacity: 0;
+  transform: translateX(0);
   clip-path: inset(0 100% 0 0);
   transition: color 0.5s ease-in-out, text-shadow 0.5s ease-in-out; // ADDED transition
 }
 
 .taskLine {
-  width: 2px; 
-  height: 34px; 
+  width: 2px;
+  height: 34px;
   background-color: var(--ark-highlight-green);
-  opacity: 0.65; 
-  margin-left: 3px; 
-  margin-top: -4px; 
+  opacity: 0.65;
+  margin-left: 3px;
+  margin-top: -4px;
   transform-origin: top;
-  transform: scaleY(0); 
-  opacity: 0; 
+  transform: scaleY(0);
+  opacity: 0;
   transition: background-color 0.5s ease-in-out; // ADDED transition
 }
 
@@ -679,12 +830,12 @@
   }
 
   // Animation Timings 
-  $square-duration: 0.15s;        
-  $text-reveal-duration: 0.25s; 
-  $line-duration: 0.2s;         
+  $square-duration: 0.15s;
+  $text-reveal-duration: 0.25s;
+  $line-duration: 0.2s;
   $stagger-delay: 0.04s; // Delay between text end and line start, and line end and next square start      
-  $initial-delay: 0.1s;       
-  $total-tasks: 30;         // Updated to 30
+  $initial-delay: 0.1s;
+  $total-tasks: 30; // Updated to 30
 
   // Calculate the total time for one full cycle (square + text + line + delays)
   // Cycle: Square -> Text -> Delay -> Line -> Delay -> Next Square
@@ -694,24 +845,34 @@
   @for $i from 1 through $total-tasks {
     // Calculate start time for the current task
     $task-start: $initial-delay + ($i - 1) * $time_per_cycle;
-    
+
     // Calculate relevant end/start times for this task and its line
     $task-square-end: $task-start + $square-duration; // Text starts right after square
     $task-text-end: $task-square-end + $text-reveal-duration;
     $line-start: $task-text-end + $stagger-delay; // Line starts after text ends + delay
 
     // Apply animation to task item (odd nth-child)
-    $item-selector-index: ($i * 2) - 1;
-    .taskItem:nth-child(#{$item-selector-index}) { 
-      .taskSquare { animation: revealTaskSquare $square-duration ease-out $task-start forwards; }
-      .taskText { animation: revealTaskTextClip $text-reveal-duration ease-out $task-square-end forwards; } // Text animation starts when square ends
+    $item-selector-index: (
+      $i * 2) - 1;
+
+    .taskItem:nth-child(#{$item-selector-index}) {
+      .taskSquare {
+        animation: revealTaskSquare $square-duration ease-out $task-start forwards;
+      }
+
+      .taskText {
+        animation: revealTaskTextClip $text-reveal-duration ease-out $task-square-end forwards;
+      }
+
+      // Text animation starts when square ends
     }
 
     // Apply animation to the line following the task item (even nth-child), if it exists
     @if $i < $total-tasks {
       $line-selector-index: $i * 2;
-      .taskLine:nth-child(#{$line-selector-index}) { 
-        animation: drawTaskLine $line-duration ease-out $line-start forwards; 
+
+      .taskLine:nth-child(#{$line-selector-index}) {
+        animation: drawTaskLine $line-duration ease-out $line-start forwards;
       }
     }
   }
@@ -721,37 +882,34 @@
 .lifeScanlines {
   position: absolute;
   inset: 0; // Cover the entire overlay area
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent,
-    transparent 2px,
-    rgba(178, 242, 187, 0.2) 2px,
-    rgba(178, 242, 187, 0.2) 3px
+  background: repeating-linear-gradient(to bottom,
+      transparent,
+      transparent 2px,
+      rgba(178, 242, 187, 0.2) 2px,
+      rgba(178, 242, 187, 0.2) 3px
   );
-  background-size: 100% 6px;
-  filter: blur(0.3px);
-  background-position: 0 0;
-  opacity: 0; // Initially hidden
-  z-index: 1; // Ensure it's below ECG lines (which use ::before/::after at z-index 2 relative to hudOverlay)
-  transition: opacity 0.2s ease-out;
+background-size: 100% 6px;
+filter: blur(0.3px);
+background-position: 0 0;
+opacity: 0; // Initially hidden
+z-index: 1; // Ensure it's below ECG lines (which use ::before/::after at z-index 2 relative to hudOverlay)
+transition: opacity 0.2s ease-out;
 
-  // Trigger animation on hover of column3 (LIFE)
-  .column3:hover:not(.nonInteractive) & {
-    animation: scanHud 1.5s linear infinite, fadeInScanlines 0.2s ease-out forwards;
-    animation-delay: 0.2s, 0.2s; // Delay slightly after ECG fade-in
-  }
+// Trigger animation on hover of column3 (LIFE)
+.column3:hover:not(.nonInteractive) & {
+  animation: scanHud 1.5s linear infinite, fadeInScanlines 0.2s ease-out forwards;
+  animation-delay: 0.2s, 0.2s; // Delay slightly after ECG fade-in
+}
 }
 
 // --- 新增: 倒置状态下的心电图扫描线（粉色）---
 .invertedScanlines {
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent,
-    transparent 2px,
-    rgba(var(--ark-primary-rgb), 0.2) 2px,
-    rgba(var(--ark-primary-rgb), 0.2) 3px
-  );
-  
+  background: repeating-linear-gradient(to bottom,
+      transparent,
+      transparent 2px,
+      rgba(var(--ark-primary-rgb), 0.2) 2px,
+      rgba(var(--ark-primary-rgb), 0.2) 3px);
+
   // Ensure animations still apply when column is hovered
   .column3:hover:not(.nonInteractive) & {
     animation: scanHud 1.5s linear infinite, fadeInScanlines 0.2s ease-out forwards;
@@ -773,18 +931,32 @@
 }
 
 // --- 修改：定义四个分支的垂直位置 ---
-.branch1 { top: 20%; }
+.branch1 {
+  top: 20%;
+}
 
-.branch2 { top: 40%; }
+.branch2 {
+  top: 40%;
+}
 
-.branch3 { top: 60%; }
+.branch3 {
+  top: 60%;
+}
 
-.branch4 { top: 80%; }
+.branch4 {
+  top: 80%;
+}
 
 // .leftBranch 和 .rightBranch 仅用于区分动画方向，不再设置 top
-.leftBranch { justify-content: flex-end; /* 保持 */ }
+.leftBranch {
+  justify-content: flex-end;
+  /* 保持 */
+}
 
-.rightBranch { justify-content: flex-start; /* 保持 */ }
+.rightBranch {
+  justify-content: flex-start;
+  /* 保持 */
+}
 
 .branchSquare {
   width: 8px;
@@ -800,10 +972,10 @@
   font-size: var(--fs-base);
   letter-spacing: 0.5px;
   text-shadow: 0 0 3px rgba(178, 242, 187, 0.5);
-  opacity: 0; 
-  white-space: pre-wrap; 
-  margin-top: 5px; 
-  line-height: 1.1; 
+  opacity: 0;
+  white-space: pre-wrap;
+  margin-top: 5px;
+  line-height: 1.1;
 }
 
 // ===== 负色模式覆写: LIFE/CONTACT 列悬停 =====
@@ -813,6 +985,7 @@
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='50' viewBox='0 0 100 50'%3E%3Cpath d='M0,25 L20,25 L25,10 L35,40 L40,25 L60,25 L65,15 L75,35 L80,25 L100,25' stroke='rgb(224, 143, 255)' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
       filter: drop-shadow(0 0 2px rgba(var(--ark-primary-rgb), 0.8));
     }
+
     .hudOverlay::after {
       background-image: none;
       background-color: var(--ark-primary);
@@ -831,7 +1004,7 @@
 
   .column4:hover:not(.nonInteractive) {
     .hudOverlay::before {
-      background: conic-gradient(from 0deg, 
+      background: conic-gradient(from 0deg,
           rgba(var(--ark-primary-rgb), 0.5) 0deg 15deg,
           transparent 15.1deg 360deg);
     }
@@ -840,9 +1013,9 @@
 
 // 新增: WORK 列文字后的图标样式
 .columnIconAfter {
-  width: 20px; 
-  height: 20px; 
-  margin-top: 8px; 
+  width: 20px;
+  height: 20px;
+  margin-top: 8px;
   filter: grayscale(100%) brightness(1.5);
   opacity: 0.5;
 }
@@ -851,6 +1024,7 @@
 // 桌面端列导航在平板/移动端变为横向条，保留悬浮动画和文字效果
 // 注意: .rightPanel 的布局重置在 _layout.scss 中处理（包括 transform: none 消除 skewX）
 @media (max-width: 1023px) {
+
   // 隐藏垂直分割线
   .verticalLine {
     display: none;
@@ -870,8 +1044,12 @@
   }
 
   // 清除每列的桌面端 left 定位
-  .column0, .column1, .column2,
-  .column3, .column4, .column5 {
+  .column0,
+  .column1,
+  .column2,
+  .column3,
+  .column4,
+  .column5 {
     left: auto;
   }
 
@@ -891,7 +1069,7 @@
   }
 
   // VerticalShinyText 内部元素也移除偏移
-  .verticalText .charItem > div {
+  .verticalText .charItem>div {
     transform: none;
   }
 
@@ -902,12 +1080,28 @@
   }
 
   // 隐藏不适合横向条的复杂特效
-  .taskContainer { display: none; }
-  .branchContainer { display: none; }
+  .taskContainer {
+    display: none;
+  }
+
+  .branchContainer {
+    display: none;
+  }
 
   // 角标适配横向条尺寸
-  .cornerHudTopLeft { top: 5px; left: 5px; width: 8px; height: 8px; }
-  .cornerHudBottomRight { bottom: 5px; right: 5px; width: 8px; height: 8px; }
+  .cornerHudTopLeft {
+    top: 5px;
+    left: 5px;
+    width: 8px;
+    height: 8px;
+  }
+
+  .cornerHudBottomRight {
+    bottom: 5px;
+    right: 5px;
+    width: 8px;
+    height: 8px;
+  }
 
   // imageHud 统一放置在右侧垂直居中
   .column .imageHud {
@@ -919,7 +1113,9 @@
   }
 
   // randomHud 在横向条中隐藏（空间不足）
-  .randomHud { display: none; }
+  .randomHud {
+    display: none;
+  }
 
   // ECG (LIFE 列) 适配横向条
   .column3:hover:not(.nonInteractive) {
@@ -927,6 +1123,7 @@
       top: 5px;
       height: 24px;
     }
+
     .hudOverlay::after {
       top: auto;
       bottom: 5px;
@@ -935,9 +1132,26 @@
   }
 
   // 雷达波纹适配横向条
-  .ripple1 { top: 50%; left: 20%; width: 30px; height: 30px; }
-  .ripple2 { top: 50%; left: 55%; width: 40px; height: 40px; }
-  .ripple3 { top: 50%; left: 80%; width: 30px; height: 30px; }
+  .ripple1 {
+    top: 50%;
+    left: 20%;
+    width: 30px;
+    height: 30px;
+  }
+
+  .ripple2 {
+    top: 50%;
+    left: 55%;
+    width: 40px;
+    height: 40px;
+  }
+
+  .ripple3 {
+    top: 50%;
+    left: 80%;
+    width: 30px;
+    height: 30px;
+  }
 
   // 雷达扫描区域适配
   .column4:hover:not(.nonInteractive) {
@@ -948,8 +1162,13 @@
   }
 
   // 非 worksColumn 的伪元素上下线条
-  .column:not(.worksColumn)::before { top: 0; }
-  .column:not(.worksColumn)::after { bottom: 0; }
+  .column:not(.worksColumn)::before {
+    top: 0;
+  }
+
+  .column:not(.worksColumn)::after {
+    bottom: 0;
+  }
 }
 
 // ===== 移动端额外调整 (<768px) =====
@@ -973,31 +1192,46 @@
     background: rgba(178, 242, 187, 0.06);
     transition: border-left 0.05s ease, background 0.05s ease;
 
-    .verticalText .charItem > div {
+    .verticalText .charItem>div {
       transform: scale(1.05);
       transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     .hudOverlay::after {
       opacity: 0.15 !important;
-      background: repeating-linear-gradient(
-        to bottom,
-        transparent,
-        transparent 2px,
-        rgba(178, 242, 187, 0.15) 2px,
-        rgba(178, 242, 187, 0.15) 3px
-      ) !important;
+      background: repeating-linear-gradient(to bottom,
+          transparent,
+          transparent 2px,
+          rgba(178, 242, 187, 0.15) 2px,
+          rgba(178, 242, 187, 0.15) 3px) !important;
       animation: none !important;
     }
   }
 
   // ===== 卡片 HUD 编号角标 =====
-  .column0::after { content: 'SEC-001' !important; }
-  .column1::after { content: 'SEC-002' !important; }
-  .column2::after { content: 'SEC-003' !important; }
-  .column3::after { content: 'SEC-004' !important; }
-  .column4::after { content: 'SEC-005' !important; }
-  .column5::after { content: 'SEC-006' !important; }
+  .column0::after {
+    content: 'SEC-001' !important;
+  }
+
+  .column1::after {
+    content: 'SEC-002' !important;
+  }
+
+  .column2::after {
+    content: 'SEC-003' !important;
+  }
+
+  .column3::after {
+    content: 'SEC-004' !important;
+  }
+
+  .column4::after {
+    content: 'SEC-005' !important;
+  }
+
+  .column5::after {
+    content: 'SEC-006' !important;
+  }
 
   .column::after {
     position: absolute !important;
@@ -1113,13 +1347,11 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: repeating-linear-gradient(
-        to bottom,
-        transparent,
-        transparent 3px,
-        rgba(178, 242, 187, 0.03) 3px,
-        rgba(178, 242, 187, 0.03) 4px
-      );
+      background: repeating-linear-gradient(to bottom,
+          transparent,
+          transparent 3px,
+          rgba(178, 242, 187, 0.03) 3px,
+          rgba(178, 242, 187, 0.03) 4px);
       animation: mobileScanlineScroll 4s linear infinite;
       pointer-events: none;
     }
@@ -1165,21 +1397,24 @@
   // 倒置模式
   .inverted {
     .mobilePanel {
-      &::before { border-color: var(--ark-highlight-green); }
-      &::after { border-color: var(--ark-highlight-green); }
+      &::before {
+        border-color: var(--ark-highlight-green);
+      }
+
+      &::after {
+        border-color: var(--ark-highlight-green);
+      }
     }
 
     .mobilePanelLogo {
       filter: grayscale(80%) brightness(0.35) hue-rotate(300deg);
 
       &::after {
-        background: repeating-linear-gradient(
-          to bottom,
-          transparent,
-          transparent 3px,
-          rgba(224, 143, 255, 0.04) 3px,
-          rgba(224, 143, 255, 0.04) 4px
-        );
+        background: repeating-linear-gradient(to bottom,
+            transparent,
+            transparent 3px,
+            rgba(224, 143, 255, 0.04) 3px,
+            rgba(224, 143, 255, 0.04) 4px);
       }
     }
   }

@@ -1,136 +1,254 @@
 [中文](./README.md) | **English**
 
-# RAINMORIME Template
+# ARSVINE REALM
 
-A post-apocalyptic, sci-fi HUD portfolio + blog template.
-
-> **[Live Demo →](https://rainmorime.com)**
+ARSVINE REALM is a personal portfolio and blog site built around a post-apocalyptic sci-fi HUD visual language. It presents projects, experience, life records, blog posts, friend links, and contact information, while keeping interactive features such as real-time visitor stats, a music player, animated route transitions, and WebGL/Three.js atmospheric effects.
 
 ![Preview](./docs/preview.png)
 
-## Getting Started
+## Current Project Status
+
+- **Project type**: personal website, not a generic template guide.
+- **Site name**: `ARSVINE REALM`.
+- **Author**: `Arsvine Zhu`.
+- **Technical baseline**: Next.js 16 Pages Router, React 18, TypeScript, SCSS Modules, Three.js, GSAP, MDX, and a custom Node.js server.
+- **Runtime requirement**: Node.js `>= 20.9.0`.
+- **Testing status**: no test framework and no `test` script are configured. Use `npm run lint` and `npm run build` for verification.
+
+## Features
+
+- **HUD-style home page**: five navigation columns leading to works, experience, blog, life, contact/about, and related sections.
+- **Animated page transitions**: route changes are coordinated through `TransitionContext`; navigation should go through `useTransition().navigateTo()` instead of direct `router.push()`.
+- **Aggregated content page**: `/content` presents the main sections in one scrollable page with hash navigation.
+- **Project detail pages**: `/web/[id]` supports rich project detail content, Markdown-style links, Bilibili/GitHub icon links, and copyable tokens configured in `data/projects.ts`.
+- **Life detail pages**: `/life/[slug]` renders detailed records from the life data set.
+- **MDX blog**: `content/blog/*.mdx` powers the blog list, post pages, RSS feed, and sitemap entries.
+- **Music player**: the playlist lives in `data/music.ts`; audio files are placed in `public/music/`. Any format supported by the browser's native `<audio>` decoder can be used, including `.mp3`, `.m4a`, `.flac`, `.wav`, and `.ogg`.
+- **Real-time stats**: the custom `server.js` provides `/api/sse/stats` and `/api/stats` for online visitors, total visits, and accumulated runtime.
+- **SEO / feed files**: `/sitemap.xml`, `/rss.xml`, and `/robots.txt` are generated from site configuration.
+- **Desktop 3D effects**: `RainMorimeEffect` and `TesseractExperience` are dynamically imported with SSR disabled and run only on the client.
+
+## Quick Start
 
 ```bash
-git clone https://github.com/RainMorime/rainmorime-template.git
-cd rainmorime-template
 npm install
 cp .env.example .env.local
 npm run dev
 ```
 
-Open `http://localhost:3000`. You'll see the loading sequence, then the five-column navigation. Now replace the placeholder content with your own.
+Open `http://localhost:3000`.
 
-## Make It Yours
+> Note: both development and production use the custom `server.js`. Do not replace it with `next dev` or `next start`, otherwise the SSE stats system will not run as designed.
 
-### Step 1: Basic Info
+## Commands
 
-These are the things you **must** change — otherwise your site will say "YOUR_SITE" and "your-email@example.com":
+```bash
+npm run dev      # Start the custom development server: node server.js
+npm run build    # Production build: next build
+npm start        # Production server: cross-env NODE_ENV=production node server.js
+npm run lint     # ESLint flat config: eslint .
+```
 
-| What to change | Where | What to put |
-|----------------|-------|-------------|
-| Site name | `components/layout/GlobalHud.tsx` | Search `YOUR_SITE`, replace with your name |
-| Loading title | `components/shared/LoadingScreen/LogoTitle.tsx` | Same as above |
-| Email | `components/sections/ContactSection.tsx` | Search `your-email@example.com` |
-| Email (copy) | `pages/content.tsx` | Search `your-email@example.com` |
-| Copyright | `components/sections/AboutSection.tsx` | Search `Your Name` |
-| Avatar | `public/avatar.svg` | Replace with your own image |
-| Typing tagline | `hooks/useTypingEffect.ts` | Edit `englishText` and `chineseText` |
+## Configuration and Content Maintenance
 
-### Step 2: Fill In Content
+The project now keeps frequently changed content in configuration and data files. Prefer editing `data/`, `content/`, `public/`, and environment variables instead of changing component logic directly.
 
-The `data/` directory holds all your content as plain TypeScript arrays — just follow the examples:
+### Site Configuration
 
-| File | Content |
-|------|---------|
-| `data/projects.ts` | Your projects and portfolio items |
-| `data/experience.ts` | Education and work timeline |
-| `data/life.ts` | Games, travel, hobbies |
+`data/site.ts` is the main entry point for site-wide configuration, including:
+
+- site name, author, email, and copyright start year
+- `metaTitle`, `metaDescription`, and RSS description
+- home page typing tagline
+- social links
+- favicon, Open Graph image, and Twitter image
+- Google Fonts / preconnect entries
+- `htmlLang`, `og:locale`, and RSS language
+- page-level SEO and headings for `/content` and `/friends`
+
+To make sitemap, RSS, robots, and Open Graph URLs use the production domain, set:
+
+```env
+NEXT_PUBLIC_SITE_URL=https://your-domain.com
+```
+
+You can also set a default `url` in `data/site.ts`; the environment variable has higher priority.
+
+### Content Data
+
+| File | Purpose |
+|---|---|
+| `data/projects.ts` | Projects / portfolio data, plus detail-page `copyableTokens` |
+| `data/experience.ts` | Education, work, and experience timeline |
+| `data/life.ts` | Games, travel, life records, and some configurable Life-section text |
 | `data/skills.ts` | Skill tree |
 | `data/friendLinks.ts` | Friend links |
+| `data/music.ts` | Music player playlist |
+| `data/site.ts` | Site identity, SEO, font, locale, and asset configuration |
 
-### Step 3: Write Blog Posts
+### Blog Posts
 
 Create `.mdx` files in `content/blog/`:
 
-```markdown
+```mdx
 ---
-title: "My First Post"
-date: "2025-01-01"
-excerpt: "A short description."
-tags: ["hello", "world"]
+title: "Post Title"
+date: "2026-01-01"
+excerpt: "A short excerpt."
+tags: ["tag-a", "tag-b"]
 ---
 
-Write in Markdown. Supports syntax highlighting, images, and custom components.
+Write the body in Markdown / MDX.
 ```
 
-### Step 4: Optional Configuration
+The blog system reads frontmatter and generates:
 
-<details>
-<summary><b>Music Player</b></summary>
+- `/blog` list
+- `/blog/[slug]` post pages
+- `/rss.xml`
+- `/sitemap.xml`
 
-Edit the `playlist` array at the top of `components/interactive/MusicPlayer.tsx`. Place audio files in `public/music/`. Supports `.mp3` and external URLs.
+### Music Player
 
-</details>
+The playlist is configured in `data/music.ts`:
 
-<details>
-<summary><b>Colors</b></summary>
+```ts
+export const musicPlaylist = [
+  {
+    title: 'Song Title',
+    artist: 'Artist Name',
+    src: '/music/example.m4a',
+  },
+];
+```
 
-The primary color is `--ark-highlight-green: #b2f2bb` in `styles/globals.scss`. Change this one variable to re-theme the entire site.
+Put local audio files under `public/music/`, then reference them with `/music/file-name`. The player uses HTML5 `<audio>`, so format support depends on the browser; modern browsers generally support `.m4a` / AAC.
 
-The inverted (power-off) palette uses `--ark-inverted-*` variables in the same file.
+> Audio files are usually large and are excluded from Git tracking by project convention. `public/music/README.md` documents the directory purpose.
 
-</details>
+### Remote Image Hosts
 
-<details>
-<summary><b>Environment Variables</b></summary>
+Remote image allow-list entries for Next.js `<Image>` are centralized in:
+
+```text
+config/image-hosts.js
+```
+
+When adding an image CDN or object-storage domain, edit only this file, then restart the dev server or rebuild.
+
+### Stats Persistence
+
+`server.js` writes stats to `.stats.json` in the project root by default. If the deployment environment should not write to the project directory, set:
 
 ```env
-PORT=3000                                    # Server port, default 3000
-NEXT_PUBLIC_SITE_URL=https://your-domain.com # For sitemap and RSS
+STATS_FILE=/var/lib/portfolio/stats.json
 ```
 
-</details>
+Related endpoints:
 
-<details>
-<summary><b>Deployment</b></summary>
+- `GET /api/stats`: accumulated runtime and total visits
+- `GET /api/sse/stats`: SSE stream for online visitors and total visits
 
-```bash
-npm run build
-npm start            # or with PM2:
-pm2 start server.js --name my-site
+## Environment Variables
+
+See `.env.example`:
+
+```env
+PORT=3000
+NEXT_PUBLIC_SITE_URL=https://example.com
+# NEXT_PUBLIC_UMAMI_SRC=https://your-umami-host/script.js
+# NEXT_PUBLIC_UMAMI_WEBSITE_ID=your-website-id
+# STATS_FILE=/var/lib/portfolio/stats.json
 ```
 
-Includes built-in SSE real-time stats (visitor count + online users + uptime) with no external database. Stats persist in `.stats.json` at the project root.
+Notes:
 
-</details>
+- `PORT`: custom server port, default `3000`.
+- `NEXT_PUBLIC_SITE_URL`: used by sitemap, RSS, robots, and Open Graph URLs.
+- `NEXT_PUBLIC_UMAMI_SRC` / `NEXT_PUBLIC_UMAMI_WEBSITE_ID`: optional Umami script config; both must be set to inject the script.
+- `STATS_FILE`: server-side stats persistence path; defaults to `.stats.json` in the project root.
 
-## Tech Stack
+## Routes
 
-Next.js 14 · TypeScript · SCSS Modules · CSS @keyframes · Framer Motion · GSAP · Three.js · MDX · Node.js SSE
+| Route | Description |
+|---|---|
+| `/` | Five-column home navigation |
+| `/content` | Aggregated content page with hash sections such as `#works`, `#experience`, `#blog`, and `#life` |
+| `/works` | Works section page |
+| `/experience` | Experience section page |
+| `/life` | Life section page |
+| `/blog` | Blog list |
+| `/web/[id]` | Project detail page |
+| `/life/[slug]` | Life detail page |
+| `/blog/[slug]` | MDX blog post page |
+| `/friends` | Friend links |
+| `/about` | About page |
+| `/contact` | Contact page |
+| `/sitemap.xml` | Generated sitemap |
+| `/rss.xml` | Generated RSS feed |
+| `/robots.txt` | Generated robots file |
 
 ## Project Structure
 
-```
-├── pages/              # Page routes
-├── components/
-│   ├── layout/         # Layout (nav, HUD, left panel)
-│   ├── sections/       # Content (Works / Experience / Life / Contact / About)
-│   ├── detail/         # Detail views
-│   ├── effects/        # Visual effects (WebGL, noise, 3D)
-│   ├── interactive/    # Interactive (music player, lightbox, lever)
-│   └── shared/         # Reusable components
-├── hooks/              # Custom hooks
-├── contexts/           # Global state
-├── data/               # ← Your content here
-├── content/blog/       # ← Your blog posts here
-├── styles/             # SCSS stylesheets
-└── server.js           # Custom server (SSE stats)
+```text
+├── components/          # Page components, layout, interactions, visual effects
+├── config/              # Externalized runtime/config fragments for Next.js and related tools
+├── contexts/            # AppContext / TransitionContext
+├── content/blog/        # MDX blog content
+├── data/                # Site configuration and content data
+├── hooks/               # Custom hooks
+├── lib/                 # Blog parsing and utility logic
+├── pages/               # Next.js Pages Router pages
+├── public/              # Static assets, images, and music directory
+├── styles/              # SCSS Modules and shared partials
+├── types/               # TypeScript type definitions
+└── server.js            # Custom Next.js + SSE server
 ```
 
-## License
+## Tech Stack
 
-[MIT](./LICENSE) — Free to use, just keep the attribution.
+- Next.js 16 (Pages Router)
+- React 18
+- TypeScript
+- SCSS Modules / Sass
+- Three.js / `@react-three/fiber` / `@react-three/drei`
+- GSAP
+- MDX / `next-mdx-remote`
+- Node.js custom server + SSE
+- ESLint flat config + `eslint-config-next/core-web-vitals`
 
----
+## Development Notes
 
-Design & development by [RainMorime](https://github.com/RainMorime).
+- This project uses the Pages Router, not the App Router.
+- `server.js` is the runtime entry. Do not replace it with `next dev` / `next start`.
+- Global state primarily flows through `contexts/AppContext.tsx` and `contexts/TransitionContext.tsx`.
+- Animation, 3D, typing, and pointer-interaction code may trigger React Compiler lint warnings. Avoid broad rewrites just to silence warnings unless there is a concrete bug.
+- For configurable content, check `data/*.ts`, `config/*.js`, and `.env.example` first.
+- There is no unit test framework; run at least `npm run lint` and `npm run build` before shipping.
+
+## Deployment
+
+```bash
+npm run build
+npm start
+```
+
+Or use a process manager:
+
+```bash
+pm2 start server.js --name arsvine-realm
+```
+
+Recommended production environment variables:
+
+```env
+NODE_ENV=production
+NEXT_PUBLIC_SITE_URL=https://your-domain.com
+STATS_FILE=/persistent/path/stats.json
+```
+
+Make sure the runtime user can write to the directory containing `STATS_FILE`.
+
+## License and Origin
+
+This project evolved from a RainMorime-style portfolio codebase and has been adapted into the ARSVINE REALM personal site. See [`LICENSE`](./LICENSE) for license details.

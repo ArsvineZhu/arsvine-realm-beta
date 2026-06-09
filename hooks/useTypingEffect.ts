@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import type { FateTypingState, EnvParamsTypingState, EnvData } from '../types';
+import { siteConfig } from '../data/site';
 
 /**
  * Fate text typing effect — alternates between English and Chinese text
@@ -10,8 +11,8 @@ export function useFateTypingEffect(textVisible: boolean): FateTypingState {
 
   useEffect(() => {
     if (textVisible) {
-      const englishText = "Replace This With Your Own Tagline";
-      const chineseText = "Write Your Own Tagline Here";
+      const englishText = siteConfig.tagline.en;
+      const chineseText = siteConfig.tagline.zh;
       const typingDelay = 80;
       const deleteDelay = 50;
       const chineseTypingDelay = 150;

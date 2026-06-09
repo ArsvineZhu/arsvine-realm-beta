@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Post-apocalyptic HUD-themed portfolio + blog template built with Next.js 16 (Pages Router), TypeScript, SCSS Modules, Three.js, GSAP, and MDX. Requires Node >= 20.9.
+ARSVINE REALM is a personal post-apocalyptic HUD-themed portfolio + blog site built with Next.js 16 (Pages Router), TypeScript, SCSS Modules, Three.js, GSAP, and MDX. Requires Node >= 20.9.
 
 ## Commands
 
@@ -28,7 +28,7 @@ Flat config extends `eslint-config-next/core-web-vitals` and enables four React 
 The dev and production servers both use `server.js`, not Next.js's built-in server. This server provides:
 - SSE endpoint at `/api/sse/stats` — pushes online visitor count and total visits to connected clients
 - REST endpoint at `/api/stats` — returns accumulated runtime and visit count
-- Stats persistence in `.stats.json` (root, gitignored)
+- Stats persistence in `.stats.json` by default, or `process.env.STATS_FILE` when set
 - Graceful shutdown that flushes stats
 
 Do not replace `server.js` with `next dev` or `next start` — the SSE stats system depends on it.
@@ -63,10 +63,11 @@ All pages consume state via `useApp()` and `useTransition()`.
 - `/friends` — Friend links page
 - `/about`, `/contact` — Standalone pages
 - `/sitemap.xml`, `/rss.xml` — Auto-generated from blog posts
+- `/robots.txt` — Generated dynamically from `getSiteUrl()`
 
 ### Content System
 
-- **Data files** (`data/*.ts`) — TypeScript arrays for projects, experience, life items, skills, friend links. These are the primary way to customize site content.
+- **Data files** (`data/*.ts`) — TypeScript arrays/config for site identity (`data/site.ts`), music playlist (`data/music.ts`), projects, experience, life items, skills, friend links, and project-detail copyable tokens. These are the primary way to maintain site content.
 - **Blog** (`content/blog/*.mdx`) — MDX files with frontmatter (`title`, `date`, `excerpt`, `tags`). Parsed by `lib/blog.ts` using gray-matter + reading-time. Rendered via next-mdx-remote.
 - **Custom MDX components** — `components/mdx/MDXComponents.tsx`
 
@@ -96,7 +97,9 @@ Configured in both `tsconfig.json` and `jsconfig.json`:
 
 See `.env.example`:
 - `PORT` — server port (default 3000)
-- `NEXT_PUBLIC_SITE_URL` — used for sitemap and RSS generation
+- `NEXT_PUBLIC_SITE_URL` — used for sitemap, RSS, robots, and Open Graph URLs
+- `NEXT_PUBLIC_UMAMI_SRC` / `NEXT_PUBLIC_UMAMI_WEBSITE_ID` — optional Umami analytics script config
+- `STATS_FILE` — optional server-side stats persistence file path
 
 ## Key Conventions
 

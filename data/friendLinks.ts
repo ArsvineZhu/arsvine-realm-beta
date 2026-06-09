@@ -5,17 +5,24 @@ import type { FriendLink } from '../types';
 // ============================================================
 export const friendLinksData: FriendLink[] = [
   {
-    id: 'friend-example-1',
-    name: 'Example Blog',
-    description: 'A cool developer blog',
-    url: 'https://example.com',
-    avatar: 'https://placehold.co/100x100/0d0d0d/b2f2bb?text=A',
+    id: 'Lyric_Epic',
+    name: 'Lyric Epic',
+    description: 'VEX_VRC Player | Producer | MUG | Designer',
+    url: 'https://ch-lyricepic.github.io/',
+    avatar: 'https://avatars.githubusercontent.com/u/56753198?v=4',
   },
   {
-    id: 'friend-example-2',
-    name: 'Another Friend',
-    description: 'Building things on the internet',
-    url: 'https://example.org',
-    avatar: 'https://placehold.co/100x100/0d0d0d/b2f2bb?text=B',
+    id: 'Slouchwind',
+    name: 'Slouchwind',
+    description: '告鸟院院长 |  Blue Archive & Phigros & Minecraft',
+    url: 'https://slouchwind.vercel.app',
+    avatar: 'https://avatars.githubusercontent.com/u/81954768?v=4',
+  },
+  {
+    id: 'MoeBob0800',
+    name: 'MoeBob0800',
+    description: 'Scratcher • CSSer | 动画 & 漫画 & 轻小说宅',
+    url: 'https://nekomoe.tw/',
+    avatar: 'https://avatars.githubusercontent.com/u/82699919?v=4',
   },
 ];

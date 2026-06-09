@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import styles from '../../styles/Home.module.scss';
 import ProjectCard from '../cards/ProjectCard';
+import { alsoPlayGames, artPlaceholderText } from '../../data/life';
 
 export default function LifeSection({
   lifeSectionRef,
@@ -17,17 +18,6 @@ export default function LifeSection({
   otherData,
   handleLifeItemClick,
 }) {
-  const alsoPlayGames = [
-    'The Binding of Isaac: Rebirth',
-    'Terraria',
-    'Stardew Valley',
-    'Warframe',
-    'Deep Rock Galactic',
-    'Slay the Spire',
-    'Stellaris',
-    'RimWorld',
-  ];
-
   const [alsoPlayExpanded, setAlsoPlayExpanded] = useState(false);
 
   return (
@@ -110,7 +100,7 @@ export default function LifeSection({
         {/* Art Tab */}
         <div ref={lifeArtTabRef} className={`${styles.lifeTabContent} ${activeLifeTab === 'art' ? styles.activeContent : ''}`}>
           <div className={styles.compactTextContainer}>
-            <p>艺术是个好东西，音乐、绘画、设计还是电影我都喜欢，可回想起来能做的能说的却很少，或许我可以晚点再写...</p>
+            <p>{artPlaceholderText}</p>
           </div>
         </div>
         {/* Other Tab */}

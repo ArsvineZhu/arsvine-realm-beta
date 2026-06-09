@@ -1,7 +1,8 @@
 import type { GetServerSideProps } from 'next';
 import { getAllPosts } from '../lib/blog';
+import { getSiteUrl } from '../data/site';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com';
+const SITE_URL = getSiteUrl();
 
 const staticPages = [
   { path: '/', priority: '1.0', changefreq: 'weekly' },

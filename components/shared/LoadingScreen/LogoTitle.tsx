@@ -1,6 +1,7 @@
 import React, { forwardRef, useRef, useImperativeHandle } from 'react';
 import styles from '../../../styles/HomeLoadingScreen.module.scss';
 import gsap from 'gsap';
+import { siteConfig } from '../../../data/site';
 
 export interface LogoTitleRef {
   container: HTMLDivElement | null;
@@ -49,11 +50,10 @@ const LogoTitle = forwardRef<LogoTitleRef>((_, ref) => {
     <div ref={logoAreaRef} className={styles.logo_area}>
       <div className={styles.title_container}>
         <h1 ref={mainTitleRef} className={styles.main_title}>
-          {/* Replace "YOUR_SITE" with your site name */}
-          {"YOUR_SITE".split("").map((char, index) => (
+          {siteConfig.name.split("").map((char, index) => (
             <span key={`site-${char}-${index}`} className={styles.char_wrapper}>
               <span className={styles.char_inner}>
-                {char}
+                {char === " " ? " " : char}
               </span>
             </span>
           ))}

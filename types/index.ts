@@ -98,6 +98,60 @@ export interface SkillCategory {
 }
 
 // ============================================================
+// Music Player
+// ============================================================
+
+export interface MusicTrack {
+  /** 歌曲标题 */
+  title: string;
+  /** 艺术家 */
+  artist: string;
+  /** 音频文件路径（如 /music/foo.m4a）或完整外链 URL，浏览器原生 HTML5 <audio> 支持的格式皆可（mp3/m4a/flac/wav/ogg 等） */
+  src: string;
+}
+
+// ============================================================
+// Site Configuration
+// ============================================================
+
+export interface SiteAssets {
+  /** 浏览器 favicon */
+  icon: string;
+  /** og:image */
+  ogImage: string;
+  /** twitter:image */
+  twitterImage: string;
+}
+
+export interface SiteFontPreconnect {
+  href: string;
+  crossOrigin?: 'anonymous';
+}
+
+export interface SiteFonts {
+  /** preconnect 域名列表 */
+  preconnect: SiteFontPreconnect[];
+  /** 主样式表 href（如 Google Fonts CSS） */
+  stylesheet: string;
+}
+
+export interface SiteLocale {
+  /** <html lang> */
+  htmlLang: string;
+  /** og:locale */
+  ogLocale: string;
+  /** RSS <language> */
+  rssLanguage: string;
+}
+
+export interface SitePages {
+  /** /content 页 SEO description（无详情视图打开时） */
+  content: { description: string };
+  /** /friends 页 title / description / 顶部 heading */
+  friends: { title: string; description: string; heading: string };
+}
+
+// ============================================================
 // Hook Return Types
 // ============================================================
 

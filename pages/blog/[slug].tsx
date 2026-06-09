@@ -13,6 +13,7 @@ import styles from '../../styles/BlogDetailView.module.scss';
 import hudStyles from '../../styles/Home.module.scss';
 import { useApp } from '../../contexts/AppContext';
 import { useTransition } from '../../contexts/TransitionContext';
+import { getSiteUrl } from '../../data/site';
 
 interface BlogPostPageProps {
   meta: BlogPostMeta;
@@ -208,7 +209,7 @@ function BlogDetailContent({ meta, mdxSource, allPosts }: BlogPostPageProps) {
         <meta property="og:title" content={meta.title} />
         <meta property="og:description" content={meta.excerpt} />
         <meta property="og:type" content="article" />
-        <meta property="og:url" content={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'}/blog/${meta.slug}`} />
+        <meta property="og:url" content={`${getSiteUrl()}/blog/${meta.slug}`} />
         <meta property="article:published_time" content={meta.date} />
         {meta.tags.map((tag) => (
           <meta key={tag} property="article:tag" content={tag} />

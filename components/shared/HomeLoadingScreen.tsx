@@ -9,8 +9,8 @@ import SplitTransition, { SplitTransitionRef } from './LoadingScreen/SplitTransi
 
 const HomeLoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
   const [visible, setVisible] = useState(true);
-  const [startLogging, setStartLogging] = useState(false);
-  const { progress, logLines, showSplitLines, loading } = useLoadingSystem(startLogging);
+  const [loadingUiReady, setLoadingUiReady] = useState(false);
+  const { progress, logLines, showSplitLines, loading } = useLoadingSystem(loadingUiReady);
   
   const onCompleteRef = useRef(onComplete);
   useEffect(() => {
@@ -48,7 +48,8 @@ const HomeLoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
       if (consoleRef.current?.container) gsap.set(consoleRef.current.container, { opacity: 1 });
       gsap.set(progressAreaRef.current, { opacity: 1, y: 0 });
       logoRef.current?.animateIn(0);
-      return () => {};
+      const readyTimer = setTimeout(() => setLoadingUiReady(true), 0);
+      return () => clearTimeout(readyTimer);
     }
 
     // --- Entrance timeline ---
@@ -74,7 +75,7 @@ const HomeLoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
       .to(logoRef.current?.container || null, { opacity: 0.15, duration: 1.0, ease: 'power2.inOut' }, 3.5)
       .to(consoleRef.current?.container || null, { opacity: 1, duration: 0.7, ease: 'none' }, 3.5)
       .to(progressAreaRef.current, { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out' }, 3.5)
-      .call(() => setStartLogging(true), [], 4.0); // Start logging after logo dims and console appears
+      .call(() => setLoadingUiReady(true), [], 4.0); // Start real loading after logo dims and console appears
 
     return () => {
       timelines.forEach(tl => tl.kill());

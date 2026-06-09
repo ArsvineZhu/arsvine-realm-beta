@@ -79,3 +79,24 @@ export const earlyProjects: Project[] = [
 
 export const learnProjects = earlyProjects;
 export const workProjects = [...webProjects, ...gameProjects];
+
+// ============================================================
+// 详情页正文里需要被识别为"可复制"的关键词。
+// 当 articleContent 文本中出现下列任何 pattern 字符串时，会被
+// 自动渲染为"点击复制"按钮（保留 Markdown 链接 [text](url) 的
+// 解析能力），无需手写额外 Markdown。
+//
+// 把你的服务器 IP / QQ 群号 / Discord 邀请码 / 邮箱别名等加在这里。
+// 数组为空则只保留 Markdown 链接解析能力。
+// ============================================================
+export interface CopyableToken {
+  /** 要匹配的字符串（按完整字面量匹配，特殊字符会自动正则转义） */
+  pattern: string;
+  /** 鼠标悬浮提示，可选 */
+  label?: string;
+}
+
+export const copyableTokens: CopyableToken[] = [
+  { pattern: 'play.foacraft.com', label: 'Minecraft 服务器地址' },
+  { pattern: '481423636', label: 'QQ 群号' },
+];

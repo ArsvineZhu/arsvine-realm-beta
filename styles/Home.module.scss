@@ -1,8 +1,8 @@
 // Partials (extracted from this file for modularity)
-@import 'animations';
-@import 'columns';
-@import 'sections';
-@import 'layout';
+@use 'animations';
+@use 'columns';
+@use 'sections';
+@use 'layout';
 
 .container {
   width: 100%;

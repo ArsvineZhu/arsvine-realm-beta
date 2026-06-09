@@ -2,17 +2,18 @@ import Head from 'next/head';
 import SectionPageLayout from '../components/layout/SectionPageLayout';
 import styles from '../styles/Home.module.scss';
 import { friendLinksData } from '../data/friendLinks';
+import { siteConfig } from '../data/site';
 
 export default function FriendsPage() {
   return (
     <>
       <Head>
-        <title>FRIENDS</title>
-        <meta name="description" content="Friends — Signal from fellow travelers" />
+        <title>{siteConfig.pages.friends.title}</title>
+        <meta name="description" content={siteConfig.pages.friends.description} />
       </Head>
       <SectionPageLayout>
         <div className={styles.friendLinkSection}>
-          <h2>Friend Links</h2>
+          <h2>{siteConfig.pages.friends.heading}</h2>
           <div className={styles.friendLinkGrid}>
             {friendLinksData.map((link) => (
               <a

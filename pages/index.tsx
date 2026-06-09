@@ -5,6 +5,7 @@ import styles from '../styles/Home.module.scss';
 import { useApp } from '../contexts/AppContext';
 import { useTransition } from '../contexts/TransitionContext';
 import NavigationColumns from '../components/layout/NavigationColumns';
+import { siteConfig, getSiteUrl } from '../data/site';
 
 export default function Home() {
   const router = useRouter();
@@ -32,11 +33,11 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>My Portfolio</title>
-        <meta name="description" content="Personal portfolio and blog" />
-        <meta property="og:title" content="My Portfolio" />
-        <meta property="og:description" content="Personal portfolio and blog" />
-        <meta property="og:url" content={process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'} />
+        <title>{siteConfig.metaTitle}</title>
+        <meta name="description" content={siteConfig.metaDescription} />
+        <meta property="og:title" content={siteConfig.metaTitle} />
+        <meta property="og:description" content={siteConfig.metaDescription} />
+        <meta property="og:url" content={getSiteUrl()} />
       </Head>
       <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
         <NavigationColumns

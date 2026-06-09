@@ -1,6 +1,7 @@
 import { memo, useEffect, useRef } from 'react';
 import styles from '../../styles/Home.module.scss';
 import { useResponsive } from '../../hooks/useMediaQuery';
+import { siteConfig } from '../../data/site';
 
 function GlobalHud({ currentTime, hudVisible, isGamePage = false }) {
   const { isMobile } = useResponsive();
@@ -29,8 +30,7 @@ function GlobalHud({ currentTime, hudVisible, isGamePage = false }) {
           <div>SIGNAL: STABLE</div>
         </div>
         <div className={`${styles.hudElement} ${styles.bottomLeft} ${hudVisible ? styles.visible : ''}`}>
-          {/* Replace with your site name */}
-          <div>YOUR_SITE</div>
+          <div>{siteConfig.name}</div>
         </div>
       </>
     );
@@ -47,8 +47,7 @@ function GlobalHud({ currentTime, hudVisible, isGamePage = false }) {
         <div>CURSOR_Y: <span ref={cursorYRef}>0000</span></div>
       </div>
       <div className={`${styles.hudElement} ${styles.bottomLeft} ${hudVisible ? styles.visible : ''}`}>
-        {/* Replace with your site name */}
-        <div>YOUR_SITE</div>
+        <div>{siteConfig.name}</div>
         <div>NAV_SYSTEM_v2.4</div>
       </div>
       {!isGamePage && (

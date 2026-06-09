@@ -1,9 +1,11 @@
 import type { GetServerSideProps } from 'next';
 import { getAllPosts } from '../lib/blog';
+import { siteConfig, getSiteUrl } from '../data/site';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com';
-const SITE_TITLE = 'My Portfolio';
-const SITE_DESCRIPTION = 'Personal blog';
+const SITE_URL = getSiteUrl();
+const SITE_TITLE = siteConfig.metaTitle;
+const SITE_DESCRIPTION = siteConfig.rssDescription;
+const SITE_LANGUAGE = siteConfig.locale.rssLanguage;
 
 function escapeXml(str: string): string {
   return str
@@ -35,7 +37,7 @@ function generateRssXml(posts: ReturnType<typeof getAllPosts>): string {
     <title>${escapeXml(SITE_TITLE)}</title>
     <link>${SITE_URL}</link>
     <description>${escapeXml(SITE_DESCRIPTION)}</description>
-    <language>zh-CN</language>
+    <language>${SITE_LANGUAGE}</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     <atom:link href="${SITE_URL}/rss.xml" rel="self" type="application/rss+xml"/>
 ${items}

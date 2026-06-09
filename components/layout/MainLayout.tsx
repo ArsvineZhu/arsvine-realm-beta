@@ -7,7 +7,6 @@ import { useApp } from '../../contexts/AppContext';
 import { useTransition } from '../../contexts/TransitionContext';
 import { useResponsive } from '../../hooks/useMediaQuery';
 
-import CustomCursor from '../interactive/CustomCursor';
 import HomeLoadingScreen from '../shared/HomeLoadingScreen';
 import MusicPlayer from '../interactive/MusicPlayer';
 import GlobalHud from './GlobalHud';
@@ -23,6 +22,13 @@ const TesseractExperience = dynamic(
 
 const RainMorimeEffect = dynamic(
   () => import('../effects/RainMorimeEffect').catch(() => ({
+    default: () => null,
+  })),
+  { ssr: false, loading: () => null }
+);
+
+const CustomCursor = dynamic(
+  () => import('../interactive/CustomCursor').catch(() => ({
     default: () => null,
   })),
   { ssr: false, loading: () => null }

@@ -22,6 +22,7 @@ import { skillCategories } from '../data/skills';
 import { experienceData } from '../data/experience';
 import { gameData, travelData, otherData } from '../data/life';
 import { getAllPosts } from '../lib/blog';
+import { siteConfig } from '../data/site';
 import type { BlogPostMeta } from '../types';
 
 const useIsomorphicLayoutEffect =
@@ -167,7 +168,7 @@ export default function ContentPage({ blogPosts }: ContentPageProps) {
 
   // --- Contact handlers ---
   const handleCopyEmail = useCallback(() => {
-    navigator.clipboard.writeText('your-email@example.com').then(() => {
+    navigator.clipboard.writeText(siteConfig.email).then(() => {
       setIsEmailCopied(true);
       setTimeout(() => setIsEmailCopied(false), 1500);
     }).catch(err => console.error('Failed to copy email:', err));
@@ -215,14 +216,14 @@ export default function ContentPage({ blogPosts }: ContentPageProps) {
       : detail.type === 'experience'
         ? `${(detail.item as any).title || (detail.item as any).company} - EXPERIENCE`
         : `${detail.item.title} - LIFE`
-    : 'My Portfolio';
+    : siteConfig.metaTitle;
 
   return (
     <>
       <Head>
         <title>{detailTitle}</title>
         {!isDetailOpen && (
-          <meta name="description" content="Portfolio — Explore" />
+          <meta name="description" content={siteConfig.pages.content.description} />
         )}
       </Head>
 

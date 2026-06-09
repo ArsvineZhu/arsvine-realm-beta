@@ -54,3 +54,24 @@ export const otherData: LifeItem[] = [
     ],
   },
 ];
+
+// ============================================================
+// "Also Play These" — 在 Game Tab 折叠区显示的"附加涉猎"清单。
+// 用纯字符串数组维护即可。
+// ============================================================
+export const alsoPlayGames: string[] = [
+  'The Binding of Isaac: Rebirth',
+  'Terraria',
+  'Stardew Valley',
+  'Warframe',
+  'Deep Rock Galactic',
+  'Slay the Spire',
+  'Stellaris',
+  'RimWorld',
+];
+
+// ============================================================
+// Art Tab 占位文案 —— 你还没准备好写艺术分享时的临时介绍。
+// ============================================================
+export const artPlaceholderText =
+  '艺术是个好东西，音乐、绘画、设计还是电影我都喜欢，可回想起来能做的能说的却很少，或许我可以晚点再写...';

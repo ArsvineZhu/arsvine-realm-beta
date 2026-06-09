@@ -9,8 +9,11 @@ import { useApp } from '../../contexts/AppContext';
 import { useTransition } from '../../contexts/TransitionContext';
 import LazyImage from '../../components/shared/LazyImage';
 import Lightbox from '../../components/interactive/Lightbox';
-import { webProjects } from '../../data/projects';
+import { webProjects, copyableTokens } from '../../data/projects';
 import type { Project } from '../../types';
+
+// 转义正则元字符，让 data/projects.ts 里的 pattern 字符串可以安全地按字面量匹配
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 function useScrollReveal(rootRef: React.RefObject<HTMLElement | null>) {
   const refs = useRef<(HTMLElement | null)[]>([]);
@@ -116,7 +119,18 @@ function WebDetailContent({ project }: PageProps) {
   const renderParagraph = useCallback((text: string, paraIndex: number) => {
     const parts: React.ReactNode[] = [];
     let lastIdx = 0;
-    const regex = /(\[([^\]]+)\]\(([^)]+)\))|(play\.foacraft\.com)|(481423636)/g;
+    // [1]/[2]/[3] 始终是 Markdown 链接 [text](url) 捕获组；从 [4] 起，每个
+    // copyableTokens 条目对应一个独立的字面量捕获组。索引偏移由 tokenGroupBase 控制。
+    const tokenGroupBase = 4;
+    const tokenAlternation = copyableTokens
+      .map((t) => `(${escapeRegExp(t.pattern)})`)
+      .join('|');
+    const regex = new RegExp(
+      tokenAlternation
+        ? `(\\[([^\\]]+)\\]\\(([^)]+)\\))|${tokenAlternation}`
+        : `(\\[([^\\]]+)\\]\\(([^)]+)\\))`,
+      'g'
+    );
     let match: RegExpExecArray | null;
 
     while ((match = regex.exec(text)) !== null) {
@@ -147,24 +161,28 @@ function WebDetailContent({ project }: PageProps) {
         } else {
           parts.push(<a key={match.index} href={linkUrl} target="_blank" rel="noopener noreferrer" className={styles.inlineLink}>{linkText}</a>);
         }
-      } else if (match[4]) {
-        const serverAddr = match[4];
-        const id = `copy-server-${paraIndex}`;
-        parts.push(
-          <span key={match.index} className={styles.copyableTextContainer}>
-            <button onClick={() => handleCopy(serverAddr, id)} className={styles.copyableTextButton}>{serverAddr}</button>
-            {copiedId === id && <span className={styles.copyFeedback}>Copied!</span>}
-          </span>
-        );
-      } else if (match[5]) {
-        const qqGroup = match[5];
-        const id = `copy-qq-${paraIndex}`;
-        parts.push(
-          <span key={match.index} className={styles.copyableTextContainer}>
-            <button onClick={() => handleCopy(qqGroup, id)} className={styles.copyableTextButton}>{qqGroup}</button>
-            {copiedId === id && <span className={styles.copyFeedback}>Copied!</span>}
-          </span>
-        );
+      } else {
+        // 检查是否命中了某个 copyableTokens 条目
+        for (let i = 0; i < copyableTokens.length; i++) {
+          const captured = match[tokenGroupBase + i];
+          if (captured) {
+            const token = copyableTokens[i];
+            const id = `copy-${i}-${paraIndex}`;
+            parts.push(
+              <span key={match.index} className={styles.copyableTextContainer}>
+                <button
+                  onClick={() => handleCopy(captured, id)}
+                  className={styles.copyableTextButton}
+                  title={token.label}
+                >
+                  {captured}
+                </button>
+                {copiedId === id && <span className={styles.copyFeedback}>Copied!</span>}
+              </span>
+            );
+            break;
+          }
+        }
       }
 
       lastIdx = match.index + match[0].length;

@@ -1,5 +1,6 @@
 import styles from '../../styles/Home.module.scss';
 import Noise from '../effects/Noise';
+import { siteConfig } from '../../data/site';
 
 export default function AboutSection({
   aboutSectionRef,
@@ -8,6 +9,11 @@ export default function AboutSection({
   totalVisits,
   currentVisitors,
 }) {
+  const currentYear = new Date().getFullYear();
+  const yearRange =
+    currentYear > siteConfig.copyrightYearStart
+      ? `${siteConfig.copyrightYearStart}-${currentYear}`
+      : `${siteConfig.copyrightYearStart}`;
   return (
     <div id="about-section" ref={aboutSectionRef} className={`${styles.contentSection} ${styles.aboutSection}`}>
       <Noise />
@@ -19,11 +25,11 @@ export default function AboutSection({
           <p>Online Now: {currentVisitors}</p>
         </div>
         <div className={styles.footerInfo}>
-          MIT 2025-PRESENT © Your Name
+          MIT {yearRange} © {siteConfig.author}
         </div>
-      
+
       </div>
-      
+
     </div>
   );
 }

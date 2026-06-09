@@ -16,7 +16,9 @@ const handle = app.getRequestHandler();
 // const ANALYTICS_TARGET = 'http://127.0.0.1:3001';
 // Uncomment and configure if you use a self-hosted analytics service.
 
-const STATS_FILE = path.join(__dirname, '.stats.json');
+const STATS_FILE = process.env.STATS_FILE
+  ? path.resolve(process.env.STATS_FILE)
+  : path.join(__dirname, '.stats.json');
 
 function loadStats() {
   try {
@@ -51,8 +53,12 @@ async function main() {
 
   const heartbeats = new Set();
 
+  function getPublicOnlineCount() {
+    return Math.max(0, onlineCount - 1);
+  }
+
   function broadcastOnlineCount() {
-    const data = `data: ${JSON.stringify({ onlineCount })}\n\n`;
+    const data = `data: ${JSON.stringify({ onlineCount: getPublicOnlineCount() })}\n\n`;
     for (const client of sseClients) {
       client.write(data);
     }
@@ -87,10 +93,10 @@ async function main() {
       onlineCount++;
       stats.totalVisits++;
       flushAndSave();
-      console.log(`SSE client connected. Online: ${onlineCount}, Total visits: ${stats.totalVisits}`);
+      console.log(`SSE client connected. Online: ${getPublicOnlineCount()} (${onlineCount} SSE connections), Total visits: ${stats.totalVisits}`);
 
       sseClients.add(res);
-      res.write(`data: ${JSON.stringify({ onlineCount })}\n\n`);
+      res.write(`data: ${JSON.stringify({ onlineCount: getPublicOnlineCount() })}\n\n`);
       broadcastOnlineCount();
 
       const heartbeat = setInterval(() => {
@@ -103,7 +109,7 @@ async function main() {
         sseClients.delete(res);
         clearInterval(heartbeat);
         heartbeats.delete(heartbeat);
-        console.log(`SSE client disconnected. Online: ${onlineCount}`);
+        console.log(`SSE client disconnected. Online: ${getPublicOnlineCount()} (${onlineCount} SSE connections)`);
         broadcastOnlineCount();
       });
 

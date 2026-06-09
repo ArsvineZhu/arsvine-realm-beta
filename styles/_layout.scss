@@ -55,7 +55,7 @@
   pointer-events: none;
   overflow: hidden;
 
-  & > * {
+  &>* {
     pointer-events: auto;
   }
 
@@ -72,9 +72,11 @@
     &::after {
       animation: expandBorder 1.2s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
     }
+
     &::before {
       animation: fadeInCorner 0.8s ease-out 0.6s forwards;
     }
+
     .logoContainer {
       animation: revealLogo 1.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
       animation-delay: 0.1s;
@@ -95,7 +97,7 @@
     background-color: transparent;
     transform: translate(-50%, -50%);
   }
-  
+
   // 角标装饰
   &::before {
     content: '';
@@ -196,13 +198,16 @@
   @media (max-width: 767px) {
     font-size: var(--fs-2xs);
     padding: 4px 6px;
-    &::before { display: none; }
+
+    &::before {
+      display: none;
+    }
   }
-  
+
   &.visible {
     opacity: 1;
   }
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -213,19 +218,19 @@
     border-width: 0;
     background-color: transparent;
   }
-  
+
   // 位置变体
   &.topLeft {
     top: var(--spacing-hud);
     left: var(--spacing-hud);
     transform: translateY(-10px);
     opacity: 0;
-    
+
     &.visible {
       transform: translateY(0);
       opacity: 1;
     }
-    
+
     &::before {
       top: -1px;
       left: -1px;
@@ -233,18 +238,20 @@
       border-left-width: 1px;
     }
   }
-  
+
   &.topRight {
     top: var(--spacing-hud);
     right: var(--spacing-hud);
     transform: translateY(-10px);
     opacity: 0;
-    
+    min-width: 128px;
+    text-align: left;
+
     &.visible {
       transform: translateY(0);
       opacity: 1;
     }
-    
+
     &::before {
       top: -1px;
       right: -1px;
@@ -252,18 +259,18 @@
       border-right-width: 1px;
     }
   }
-  
+
   &.bottomLeft {
     bottom: var(--spacing-hud);
     left: var(--spacing-hud);
     transform: translateY(10px);
     opacity: 0;
-    
+
     &.visible {
       transform: translateY(0);
       opacity: 1;
     }
-    
+
     &::before {
       bottom: -1px;
       left: -1px;
@@ -275,18 +282,18 @@
       bottom: calc(56px + var(--spacing-hud) + env(safe-area-inset-bottom, 0));
     }
   }
-  
+
   &.bottomRight {
     bottom: var(--spacing-hud);
     right: var(--spacing-hud);
     transform: translateY(10px);
     opacity: 0;
-    
+
     &.visible {
       transform: translateY(0);
       opacity: 1;
     }
-    
+
     &::before {
       bottom: -1px;
       right: -1px;
@@ -342,6 +349,7 @@
   font-weight: bold;
   transition: color 0.5s ease-in-out; // ADDED transition
 }
+
 .fateLine {
   width: 270px; // Increased width from 150px
   height: 1px;
@@ -352,11 +360,11 @@
   &::before {
     content: '';
     position: absolute;
-    width: 1px;      // Slash thickness
-    height: 16px;    // Doubled slash length from 8px
+    width: 1px; // Slash thickness
+    height: 16px; // Doubled slash length from 8px
     background-color: var(--ark-border);
     left: calc(100% / 6); // Position 1/6th from the left
-    bottom: -7px;      // Adjusted vertical position for doubled height
+    bottom: -7px; // Adjusted vertical position for doubled height
     transform: rotate(-30deg); // Tilt left (adjust angle as needed)
     transform-origin: center bottom; // Rotate around bottom-center
   }
@@ -365,10 +373,10 @@
   &::after {
     content: '';
     position: absolute;
-    width: 10px;  // Doubled rectangle width
-    height: 6px;  // Doubled rectangle height
+    width: 10px; // Doubled rectangle width
+    height: 6px; // Doubled rectangle height
     background-color: var(--ark-border);
-    right: 0;     // Position at the right end of the line
+    right: 0; // Position at the right end of the line
     bottom: -2.5px; // Align vertically with the dashed line (center of 6px height is 3px, align with 1px line -> move up 2.5px from bottom)
   }
 }
@@ -388,7 +396,7 @@
   position: absolute; // 保持 absolute，相对于固定的 leftPanel 定位
   // 定位在左侧面板边框 (15%) 的内侧左下角
   bottom: 19%; // 修改: 适配新的边框底部位置
-  left: 16.5%;   // 保持 17%，靠近内部左边框
+  left: 16.5%; // 保持 17%，靠近内部左边框
   z-index: 10; // 在 leftPanel 内部的堆叠顺序
   text-align: left;
   max-width: 220px;
@@ -410,7 +418,7 @@
     color: var(--ark-text-secondary);
     animation: blinkCursor 0.8s infinite;
     font-weight: bold;
-    right: -0.2em; 
+    right: -0.2em;
     bottom: -0.1em;
   }
 }
@@ -420,15 +428,15 @@
   font-size: var(--fs-sm);
   color: var(--ark-text-secondary);
   letter-spacing: 0.5px;
-  white-space: pre; 
-  line-height: 1.4; 
-  position: relative; 
-  margin: 0; 
+  white-space: pre;
+  line-height: 1.4;
+  position: relative;
+  margin: 0;
   background-color: transparent;
   box-shadow: none;
   border: none;
-  padding: 0; 
-  
+  padding: 0;
+
   &::selection {
     // 可以保留或移除，如果保留，颜色可能需要调整
     background-color: rgba(var(--ark-secondary-rgb), 0.7);
@@ -440,15 +448,15 @@
 // --- 新增: Power Display 容器样式 --- (尺寸调整)
 .powerDisplay {
   position: absolute;
-  top: 19%; 
-  left: 17%; 
+  top: 19%;
+  left: 17%;
   display: flex;
   align-items: center;
   gap: 10px; // 增大图标和文字间距
-  color: var(--ark-primary); 
+  color: var(--ark-primary);
   font-family: var(--font-hud);
   font-size: var(--fs-base); // 稍微增大字体
-  z-index: 10; 
+  z-index: 10;
   opacity: 0;
   // 定义 opacity 和 color 的基础过渡
   transition-property: opacity, color;
@@ -456,14 +464,14 @@
   transition-timing-function: ease, ease-in-out;
   transition-delay: 0s, 0s; // 明确指定 color 的 delay 为 0
 
-  .leftPanel.animated & { 
+  .leftPanel.animated & {
     opacity: 0.8;
     // 这里的 transition-delay 只会影响 opacity，因为它会覆盖上面 opacity 的 delay
     // 但为了更明确，我们还是指定 property
     transition-property: opacity; // 只让这里的设置影响 opacity
-    transition-duration: 0.8s;  // opacity 动画时长
+    transition-duration: 0.8s; // opacity 动画时长
     transition-timing-function: ease; // opacity 动画缓动
-    transition-delay: 2.0s;   // opacity 动画延迟
+    transition-delay: 2.0s; // opacity 动画延迟
   }
 }
 
@@ -501,9 +509,9 @@
 
 // --- 新增: 恢复默认的填充状态样式 --- 
 .batteryLevelSegment.filled {
-  background-color: var(--ark-highlight-green); 
+  background-color: var(--ark-highlight-green);
   // ADD transition here as well, to ensure it covers changes from inverted state too
-  transition: background-color 0.3s ease; 
+  transition: background-color 0.3s ease;
 }
 
 // --- 新增: Power Text 样式 (可选) ---
@@ -523,14 +531,15 @@
   }
 
   .backButton {
-     background: #ffffff;
-     border-color: #cccccc;
-     color: #333333;
-     &:hover {
-       background: #aaaaaa;
-       border-color: #888888;
-       color: #ffffff;
-     }
+    background: #ffffff;
+    border-color: #cccccc;
+    color: #333333;
+
+    &:hover {
+      background: #aaaaaa;
+      border-color: #888888;
+      color: #ffffff;
+    }
   }
 
 }
@@ -593,27 +602,29 @@
     background: var(--ark-primary);
     border-color: var(--ark-primary);
     opacity: 1;
+
     &::before {
       color: var(--ark-dark-blue);
     }
   }
 
   :global(.inverted) & {
-     background: rgba(0, 0, 0, 0.1);
-     border-color: var(--ark-border);
-     color: var(--ark-text-secondary);
+    background: rgba(0, 0, 0, 0.1);
+    border-color: var(--ark-border);
+    color: var(--ark-text-secondary);
 
-     &::before {
-       color: var(--ark-text-secondary);
-     }
+    &::before {
+      color: var(--ark-text-secondary);
+    }
 
-     &:hover {
-       background: var(--ark-primary);
-       border-color: var(--ark-primary);
-       &::before {
-         color: #ffffff;
-       }
-     }
+    &:hover {
+      background: var(--ark-primary);
+      border-color: var(--ark-primary);
+
+      &::before {
+        color: #ffffff;
+      }
+    }
   }
 }
 
@@ -666,17 +677,17 @@
 // --- 新增: 左侧面板右上角装饰 ---
 .topRightDecoration {
   position: absolute;
-  top: 17.5%; 
-  right: 20%; 
-  width: 20px; 
+  top: 17.5%;
+  right: 20%;
+  width: 20px;
   height: 20px;
   // 修改: 使用边框颜色作为背景
-  background-color: var(--ark-border); 
-  border-radius: 50%; 
-  transform: translate(50%, -50%); 
+  background-color: var(--ark-border);
+  border-radius: 50%;
+  transform: translate(50%, -50%);
   // 修改: 提高 z-index
-  z-index: 12; 
-  opacity: 0; 
+  z-index: 12;
+  opacity: 0;
   transition: opacity 0.8s ease;
   pointer-events: none;
 
@@ -686,16 +697,16 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 110%; 
-    height: 1.5px; 
+    width: 110%;
+    height: 1.5px;
     // 修改: 使用主高亮色作为斜线颜色
-    background-color: var(--ark-primary); 
-    transform: translate(-50%, -50%) rotate(45deg); 
+    background-color: var(--ark-primary);
+    transform: translate(-50%, -50%) rotate(45deg);
   }
 
   // 动画：与电量显示等元素同步出现
-  .leftPanel.animated & { 
-    transition-delay: 2.0s; 
+  .leftPanel.animated & {
+    transition-delay: 2.0s;
     opacity: 0.7; // 修改: 稍微提高最终透明度
   }
 }
@@ -704,7 +715,7 @@
 .brailleText {
   position: absolute;
   bottom: 14.5%; // 比 fateTextContainer (19%) 稍低一点
-  right: 21%;   // 与 fateTextContainer 右对齐
+  right: 21%; // 与 fateTextContainer 右对齐
   color: var(--ark-text-secondary); // 使用次要文字颜色
   font-size: var(--fs-md);
   font-family: var(--font-hud);
@@ -716,7 +727,7 @@
   text-align: right; // 确保文本右对齐
 
   // 动画：在 fate/env text (2.0s) 之后出现
-  .leftPanel.animated & { 
+  .leftPanel.animated & {
     transition-delay: 2.4s; // 比 fate/env text (2.0s) 稍晚出现
     opacity: 0.5; // 最终透明度 (比 fate/env text 稍低)
   }
@@ -779,14 +790,19 @@
 
 // --- 新增: 倒置状态渐变 ---
 .gradientLineInverted {
-   background: linear-gradient(
-      to right,
-      var(--ark-primary) 0% 2%,  /* Inverted Primary (Pink/Purple) block */
-      #888888 2% 38%,       /* Lighter Gray 1 */
-      #999999 38% 62%,      /* Lighter Gray 2 */
-      #aaaaaa 62% 82%,      /* Lighter Gray 3 */
-      #bbbbbb 82% 95%,      /* Lighter Gray 4 */
-      #cccccc 95% 100%        /* Lightest Gray */
+  background: linear-gradient(to right,
+      var(--ark-primary) 0% 2%,
+      /* Inverted Primary (Pink/Purple) block */
+      #888888 2% 38%,
+      /* Lighter Gray 1 */
+      #999999 38% 62%,
+      /* Lighter Gray 2 */
+      #aaaaaa 62% 82%,
+      /* Lighter Gray 3 */
+      #bbbbbb 82% 95%,
+      /* Lighter Gray 4 */
+      #cccccc 95% 100%
+      /* Lightest Gray */
     );
 }
 
@@ -837,11 +853,16 @@
       transform: translateX(0);
       pointer-events: auto;
       transition: opacity 0.35s ease-out, transform 0.35s ease-out,
-                  background-color 0.3s, color 0.3s, border-color 0.3s, padding-left 0.3s;
+        background-color 0.3s, color 0.3s, border-color 0.3s, padding-left 0.3s;
 
       @for $i from 1 through 8 {
         &:nth-child(#{$i}) {
-          transition-delay: #{($i - 1) * 0.06}s, #{($i - 1) * 0.06}s, 0s, 0s, 0s, 0s;
+          transition-delay: #{($i - 1) * 0.06}s,
+          #{($i - 1) * 0.06}s,
+          0s,
+          0s,
+          0s,
+          0s;
         }
       }
     }
@@ -867,11 +888,16 @@
   pointer-events: none;
   will-change: transform, opacity;
   transition: opacity 0.25s ease-in, transform 0.25s ease-in,
-              background-color 0.3s, color 0.3s, border-color 0.3s, padding-left 0.3s;
+    background-color 0.3s, color 0.3s, border-color 0.3s, padding-left 0.3s;
 
   @for $i from 1 through 8 {
     &:nth-child(#{$i}) {
-      transition-delay: #{($i - 1) * 0.04}s, #{($i - 1) * 0.04}s, 0s, 0s, 0s, 0s;
+      transition-delay: #{($i - 1) * 0.04}s,
+      #{($i - 1) * 0.04}s,
+      0s,
+      0s,
+      0s,
+      0s;
     }
   }
 
@@ -884,12 +910,13 @@
   }
 
   :global(.inverted) & {
-     color: var(--ark-text-secondary);
-     &:hover {
-       background: var(--ark-primary);
-       border-color: var(--ark-primary);
-       color: #ffffff;
-     }
+    color: var(--ark-text-secondary);
+
+    &:hover {
+      background: var(--ark-primary);
+      border-color: var(--ark-primary);
+      color: #ffffff;
+    }
   }
 }
 
@@ -930,16 +957,22 @@
     }
 
     // 隐藏桌面端绝对定位的装饰/背景
-    &::before, &::after { display: none; }
+    &::before,
+    &::after {
+      display: none;
+    }
   }
 
   // === 逐一重写面板子元素为 relative 流式布局 ===
   // 使用 order 控制抽屉内元素视觉顺序
-  .topRightDecoration { display: none; }
+  .topRightDecoration {
+    display: none;
+  }
 
   .leverGroup {
     position: relative;
-    top: auto; right: auto;
+    top: auto;
+    right: auto;
     order: 1;
     display: flex;
     flex-direction: row;
@@ -951,7 +984,8 @@
 
   .powerDisplay {
     position: relative;
-    top: auto; left: auto;
+    top: auto;
+    left: auto;
     order: 2;
     justify-content: center;
     margin-bottom: 20px;
@@ -978,7 +1012,8 @@
 
   .leftNavLinks {
     position: relative;
-    top: auto; right: auto;
+    top: auto;
+    right: auto;
     order: 4;
     width: 100%;
     max-width: none;
@@ -1007,7 +1042,8 @@
   // 座右铭文字: 流式布局
   .fateTextContainer {
     position: relative;
-    bottom: auto; right: auto;
+    bottom: auto;
+    right: auto;
     order: 5;
     align-items: flex-start;
     margin-bottom: 12px;
@@ -1027,7 +1063,8 @@
   // 环境参数: 流式布局
   .envParamsContainer {
     position: relative;
-    bottom: auto; left: auto;
+    bottom: auto;
+    left: auto;
     order: 6;
     margin-bottom: 12px;
     flex-shrink: 0;
@@ -1042,7 +1079,8 @@
   // 盲文: 流式布局
   .brailleText {
     position: relative;
-    bottom: auto; right: auto;
+    bottom: auto;
+    right: auto;
     order: 7;
     text-align: left;
     margin-bottom: 8px;
@@ -1057,7 +1095,8 @@
   // 颜色条: 流式布局
   .gradientLine {
     position: relative;
-    bottom: auto; right: auto;
+    bottom: auto;
+    right: auto;
     order: 8;
     width: 100%;
     max-width: 240px;
@@ -1073,7 +1112,8 @@
   // 开往链接: 流式布局
   .travellingLink {
     position: relative;
-    bottom: auto; left: auto;
+    bottom: auto;
+    left: auto;
     order: 9;
     margin-bottom: 8px;
     flex-shrink: 0;
@@ -1168,7 +1208,8 @@
     cursor: none;
     transition: background-color 0.3s, border-color 0.3s;
 
-    &:hover, &:active {
+    &:hover,
+    &:active {
       background: rgba(40, 40, 40, 0.9);
       border-color: var(--ark-primary);
     }
@@ -1182,9 +1223,17 @@
     }
 
     &.hamburgerOpen {
-      span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
-      span:nth-child(2) { opacity: 0; }
-      span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+      span:nth-child(1) {
+        transform: translateY(6.5px) rotate(45deg);
+      }
+
+      span:nth-child(2) {
+        opacity: 0;
+      }
+
+      span:nth-child(3) {
+        transform: translateY(-6.5px) rotate(-45deg);
+      }
     }
   }
 }
@@ -1214,13 +1263,11 @@
       left: 0;
       right: 0;
       height: 1px;
-      background: linear-gradient(
-        90deg,
-        transparent 10%,
-        var(--ark-highlight-green) 40%,
-        var(--ark-highlight-green) 60%,
-        transparent 90%
-      );
+      background: linear-gradient(90deg,
+          transparent 10%,
+          var(--ark-highlight-green) 40%,
+          var(--ark-highlight-green) 60%,
+          transparent 90%);
       opacity: 0.1;
     }
 
@@ -1230,16 +1277,14 @@
       top: -1px;
       width: 35%;
       height: 2px;
-      background: linear-gradient(
-        90deg,
-        transparent 0%,
-        rgba(178, 242, 187, 0.02) 15%,
-        rgba(178, 242, 187, 0.06) 35%,
-        rgba(178, 242, 187, 0.15) 55%,
-        rgba(178, 242, 187, 0.4) 78%,
-        var(--ark-highlight-green) 95%,
-        rgba(178, 242, 187, 0.6) 100%
-      );
+      background: linear-gradient(90deg,
+          transparent 0%,
+          rgba(178, 242, 187, 0.02) 15%,
+          rgba(178, 242, 187, 0.06) 35%,
+          rgba(178, 242, 187, 0.15) 55%,
+          rgba(178, 242, 187, 0.4) 78%,
+          var(--ark-highlight-green) 95%,
+          rgba(178, 242, 187, 0.6) 100%);
       filter: drop-shadow(0 0 3px var(--ark-highlight-green));
       animation: scanBottomBar 4s cubic-bezier(0.25, 0.8, 0.25, 1) infinite;
       pointer-events: none;
@@ -1260,9 +1305,9 @@
   font-family: var(--font-hud);
   cursor: none;
   transition: color 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
-              background-color 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
-              transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
-              text-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    background-color 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
+    transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
+    text-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   padding: 0;
   position: relative;
   -webkit-tap-highlight-color: transparent;
@@ -1306,7 +1351,7 @@
   font-size: var(--fs-xl);
   line-height: 1;
   transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
-              filter 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    filter 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 
   .bottomBarActive & {
     transform: rotate(180deg);
@@ -1337,10 +1382,13 @@
 }
 
 @keyframes bottomBarBreath {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 0.55;
     text-shadow: 0 0 4px transparent;
   }
+
   50% {
     opacity: 0.9;
     text-shadow: 0 0 6px var(--ark-highlight-green);
@@ -1353,16 +1401,14 @@
     background: rgba(240, 240, 240, 0.95);
 
     &::after {
-      background: linear-gradient(
-        90deg,
-        transparent 0%,
-        rgba(var(--ark-highlight-green-rgb), 0.02) 15%,
-        rgba(var(--ark-highlight-green-rgb), 0.06) 35%,
-        rgba(var(--ark-highlight-green-rgb), 0.15) 55%,
-        rgba(var(--ark-highlight-green-rgb), 0.4) 78%,
-        var(--ark-highlight-green) 95%,
-        rgba(var(--ark-highlight-green-rgb), 0.6) 100%
-      );
+      background: linear-gradient(90deg,
+          transparent 0%,
+          rgba(var(--ark-highlight-green-rgb), 0.02) 15%,
+          rgba(var(--ark-highlight-green-rgb), 0.06) 35%,
+          rgba(var(--ark-highlight-green-rgb), 0.15) 55%,
+          rgba(var(--ark-highlight-green-rgb), 0.4) 78%,
+          var(--ark-highlight-green) 95%,
+          rgba(var(--ark-highlight-green-rgb), 0.6) 100%);
       filter: drop-shadow(0 0 3px var(--ark-highlight-green));
     }
   }
@@ -1387,7 +1433,8 @@
     background: rgba(240, 240, 240, 0.85);
     border-color: var(--ark-border);
 
-    &:hover, &:active {
+    &:hover,
+    &:active {
       background: rgba(220, 220, 220, 0.95);
       border-color: var(--ark-primary);
     }
@@ -1407,4 +1454,3 @@
     }
   }
 }
-

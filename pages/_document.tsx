@@ -1,24 +1,37 @@
 import { Html, Head, Main, NextScript } from 'next/document';
+import { siteConfig } from '../data/site';
 
 export default function Document() {
   return (
-    <Html lang="zh">
+    <Html lang={siteConfig.locale.htmlLang}>
       <Head>
         <meta httpEquiv="Content-Security-Policy" content="upgrade-insecure-requests" />
 
-        <meta property="og:site_name" content="My Portfolio" />
+        <meta property="og:site_name" content={siteConfig.name} />
         <meta property="og:type" content="website" />
-        <meta property="og:locale" content="zh_CN" />
-        <meta property="og:image" content="/avatar.svg" />
+        <meta property="og:locale" content={siteConfig.locale.ogLocale} />
+        <meta property="og:image" content={siteConfig.assets.ogImage} />
         <meta name="twitter:card" content="summary" />
-        <meta name="twitter:image" content="/avatar.svg" />
+        <meta name="twitter:image" content={siteConfig.assets.twitterImage} />
 
-        <link rel="icon" href="/avatar.svg" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+        <link rel="icon" href={siteConfig.assets.icon} />
+        {siteConfig.fonts.preconnect.map((p) => (
+          <link
+            key={p.href}
+            rel="preconnect"
+            href={p.href}
+            {...(p.crossOrigin ? { crossOrigin: p.crossOrigin } : {})}
+          />
+        ))}
+        <link href={siteConfig.fonts.stylesheet} rel="stylesheet" />
         <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="/rss.xml" />
-        <script defer src="/umami/script.js" data-website-id="e2efd946-c058-4962-a2a1-164742492800"></script>
+        {process.env.NEXT_PUBLIC_UMAMI_SRC && (
+          <script
+            defer
+            src={process.env.NEXT_PUBLIC_UMAMI_SRC}
+            data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}
+          />
+        )}
       </Head>
       <body>
         <Main />
@@ -26,4 +39,4 @@ export default function Document() {
       </body>
     </Html>
   );
-} 
+}
