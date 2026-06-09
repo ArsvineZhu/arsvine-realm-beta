@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Post-apocalyptic HUD-themed portfolio + blog template built with Next.js 14 (Pages Router), TypeScript, SCSS Modules, Three.js, GSAP, and MDX.
+Post-apocalyptic HUD-themed portfolio + blog template built with Next.js 16 (Pages Router), TypeScript, SCSS Modules, Three.js, GSAP, and MDX. Requires Node >= 20.9.
 
 ## Commands
 
@@ -12,10 +12,14 @@ Post-apocalyptic HUD-themed portfolio + blog template built with Next.js 14 (Pag
 npm run dev      # Start dev server via custom server.js (not next dev)
 npm run build    # Production build (next build)
 npm start        # Production server (cross-env NODE_ENV=production node server.js)
-npm run lint     # ESLint (next lint)
+npm run lint     # ESLint flat config (eslint .)
 ```
 
 No test framework is configured. There are no `test` scripts.
+
+### Lint config (`eslint.config.mjs`)
+
+Flat config extends `eslint-config-next/core-web-vitals` and enables four React Compiler rules as warnings: `react-hooks/immutability`, `react-hooks/purity`, `react-hooks/refs`, `react-hooks/set-state-in-effect`. These flag legitimate patterns in animation/3D/typewriter code (Tesseract, CustomCursor, useTypingEffect) — when touching those areas, expect warnings and prefer scoped `// eslint-disable-next-line` with a reason over rewriting working interaction code.
 
 ## Architecture
 
