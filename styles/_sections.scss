@@ -467,8 +467,16 @@
   color: var(--ark-text-secondary); // 使用次要文本颜色
   opacity: 0.7; // 轻微透明
   // margin-top: 20px; // 由父级 .aboutContentInner 控制
+  padding-left: 12px; // 与 .siteStatsContainer 对齐
+  padding-top: 12px; // 为顶部分割线留出空隙
+  border-top: 1px solid var(--ark-border); // 与 ABOUT 标题下划线统一
   text-align: left; // 确保左对齐
   line-height: 1.5; // 新增: 调整行高，让两行间距更舒适
+
+  p {
+    margin: 0 0 4px 0; // 与 .siteStatsContainer p 间距一致
+    font-size: inherit;
+  }
 
   a {
     font-size: inherit; // 新增: 确保链接字体大小与父元素一致
@@ -1089,7 +1097,13 @@
   // Position bottom-leftish, outside radar
   top: 88vh; // Changed from 1000px
   left: 40%;
-  // transform: translate(-50%, -50%); 
+  // transform: translate(-50%, -50%);
+}
+
+/* --- ADD: Bilibili icon position (mirrors X to the right) --- */
+.radarContact7 {
+  top: 88vh;
+  left: 60%;
 }
 
 // --- ADD: Styles and Animation for Icon Ripples ---
@@ -1129,6 +1143,10 @@
 
 .radarContact6 .contactIconRipple {
   animation-delay: 1.0s;
+}
+
+.radarContact7 .contactIconRipple {
+  animation-delay: 1.2s;
 }
 
 .inverted {
@@ -2197,6 +2215,76 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
   gap: clamp(12px, 2vw, 20px);
+}
+
+// --- Copyright Page ---
+.copyrightSection {
+  max-width: 880px;
+}
+
+.copyrightArticle {
+  width: 100%;
+  color: var(--ark-text);
+  font-family: var(--font-reading, var(--font-body));
+  font-size: clamp(0.875rem, 0.4vw + 0.75rem, 1rem);
+  line-height: 1.85;
+
+  // English block uses a wider Latin reading face when available
+  &[lang='en'] {
+    font-family: var(--font-body);
+  }
+
+  h3 {
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 1vw + 0.75rem, 1.75rem);
+    font-weight: 300;
+    color: var(--ark-primary);
+    letter-spacing: 1.5px;
+    margin: 0 0 clamp(16px, 2vw, 24px);
+    text-transform: uppercase;
+  }
+
+  p {
+    margin: 0 0 clamp(12px, 1.4vw, 18px);
+  }
+
+  ol {
+    margin: 0 0 clamp(12px, 1.4vw, 18px);
+    padding-left: 1.4em;
+
+    li {
+      margin-bottom: 0.4em;
+    }
+  }
+
+  a {
+    color: var(--ark-primary);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(var(--ark-primary-rgb), 0.4);
+    transition: color 0.25s, border-color 0.25s;
+
+    &:hover {
+      color: var(--ark-highlight-green, var(--ark-primary));
+      border-bottom-color: currentColor;
+    }
+  }
+}
+
+.copyrightDivider {
+  width: 100%;
+  border: none;
+  border-top: 1px dashed var(--ark-border);
+  margin: clamp(28px, 4vw, 48px) 0;
+}
+
+.copyrightStamp {
+  width: 100%;
+  margin-top: clamp(28px, 4vw, 48px);
+  font-family: var(--font-hud);
+  font-size: var(--fs-caption);
+  color: var(--ark-text-secondary);
+  opacity: 0.7;
+  letter-spacing: 1px;
 }
 
 .friendLinkCard {

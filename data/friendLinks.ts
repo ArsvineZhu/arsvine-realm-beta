@@ -25,4 +25,11 @@ export const friendLinksData: FriendLink[] = [
     url: 'https://nekomoe.tw/',
     avatar: 'https://avatars.githubusercontent.com/u/82699919?v=4',
   },
+  {
+    id: '吲哚乙酸',
+    name: '吲哚乙酸',
+    description: 'Botanical Soul | Rooted in Green',
+    url: 'https://steamcommunity.com/profiles/76561198794923959',
+    avatar: 'https://avatars.fastly.steamstatic.com/8a3f577639b1337be04680d0da6966c0c855f192_full.jpg',
+  },
 ];

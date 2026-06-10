@@ -46,11 +46,12 @@ export interface SiteConfig {
     en: string;
     zh: string;
   };
-  /** 联系页社交链接。留空字符串则在 UI 上仍然占位（由组件决定是否隐藏） */
+  /** 联系页社交链接。留空字符串则在 UI 上隐藏对应图标 */
   social: {
     github: string;
-    twitter: string;
-    linkedin: string;
+    x: string;
+    steam: string;
+    bilibili: string;
   };
   /** 全站共用的视觉资源（favicon、社交分享图） */
   assets: SiteAssets;
@@ -66,7 +67,7 @@ export const siteConfig: SiteConfig = {
   name: 'ARSVINE REALM',
   author: 'Arsvine Zhu',
   email: 'arsvinezhu@gmail.com',
-  url: '',
+  url: 'https://arsvine.com',
   copyrightYearStart: 2026,
   metaTitle: 'ARSVINE REALM',
   metaDescription: 'Personal portfolio and blog',
@@ -77,8 +78,9 @@ export const siteConfig: SiteConfig = {
   },
   social: {
     github: 'https://github.com/ArsvineZhu',
-    twitter: 'https://x.com/arsvine',  // 图标为 bilibili
-    linkedin: 'https://x.com/arsvine',  // 图标为 Steam
+    x: 'https://x.com/arsvine',
+    steam: 'https://steamcommunity.com/id/arsvine/',
+    bilibili: 'https://space.bilibili.com/3461563151288978',
   },
   assets: {
     icon: '/avatar_transparent.png',
@@ -105,9 +107,13 @@ export const siteConfig: SiteConfig = {
       description: 'Friends — Signal from fellow travelers',
       heading: 'Friend Links',
     },
+    copyright: {
+      title: 'COPYRIGHT',
+      description: 'Copyright & License — Source code and content licensing terms',
+    },
   },
 };
 
 /** 站点 URL，若 siteConfig.url 与 NEXT_PUBLIC_SITE_URL 均未设置则回退占位 */
 export const getSiteUrl = (): string =>
-  process.env.NEXT_PUBLIC_SITE_URL || siteConfig.url || 'https://example.com';
+  process.env.NEXT_PUBLIC_SITE_URL || siteConfig.url || 'https://arsvine.com';

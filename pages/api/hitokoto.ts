@@ -1,0 +1,53 @@
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+/**
+ * 一言代理 (https://developer.hitokoto.cn/sentence/)
+ *
+ * 为什么走代理而不是客户端直连：
+ *  - 统一出口便于将来加监控 / 换源；
+ *  - 进程内 60s 缓存，QPS 2/s 上限下显著降低上游压力；
+ *  - 隔离上游故障（一言曾因 DDoS 多次降级）。
+ *
+ * 句源约束：c=d|i|k（文学/诗词/哲学），长度 10–30。
+ *
+ * 响应：
+ *  - 200 { text: string }      —— 成功（含缓存）
+ *  - 502 { error: 'upstream_unavailable' } —— 上游失败 / 超时 / 空内容
+ *
+ * 客户端按 HTTP 状态判断即可，不需要解析 error 字段。
+ */
+
+const UPSTREAM =
+  'https://v1.hitokoto.cn/?c=d&c=i&c=k&min_length=10&max_length=30&encode=json&charset=utf-8';
+const CACHE_TTL_MS = 60_000;
+const FETCH_TIMEOUT_MS = 5_000;
+
+// 进程内缓存：开发热重载会重置；生产 Vercel serverless 冷启动也会重置 — 都可接受
+let cache: { text: string; expiresAt: number } | null = null;
+
+export default async function handler(_req: NextApiRequest, res: NextApiResponse) {
+  if (cache && cache.expiresAt > Date.now()) {
+    res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=60');
+    return res.status(200).json({ text: cache.text });
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+  try {
+    const upstream = await fetch(UPSTREAM, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!upstream.ok) throw new Error(`upstream ${upstream.status}`);
+    const data = await upstream.json();
+    const text = typeof data?.hitokoto === 'string' ? data.hitokoto.trim() : '';
+    if (!text) throw new Error('empty hitokoto');
+    cache = { text, expiresAt: Date.now() + CACHE_TTL_MS };
+    res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=60');
+    return res.status(200).json({ text });
+  } catch (err) {
+    clearTimeout(timeoutId);
+    // 仅记录摘要，避免 Vercel 日志噪音
+    console.warn('[hitokoto] upstream failed:', (err as Error).message);
+    return res.status(502).json({ error: 'upstream_unavailable' });
+  }
+}

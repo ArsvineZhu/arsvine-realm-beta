@@ -163,14 +163,21 @@ const TesseractExperience = ({ chargeBattery, isActivated, isInverted }) => {
 
   return (
     // 3D Canvas 容器 div
-    <div style={{ 
-      position: 'fixed', 
-      top: '17.5vh',    // 匹配 UI 红色区域顶部
-      left: '7.3vw',   // 匹配红色区域左侧
-      width: '40.2vw',  // 匹配红色区域宽度
-      height: '65vh', // 匹配红色区域高度
-      zIndex: 7, // 层级
-      pointerEvents: 'none', // 容器不响应鼠标事件
+    // 几何与 .leftPanel::after 红色 HUD 边框 (_animations.scss `expandBorder` 终态) 严格对齐：
+    //   leftPanel: left: -2vw, width: var(--left-panel-width)=56vw (desktop)
+    //   红框:     top: 17.5%, left: 15%, width: 65%, height: 65% (相对 leftPanel)
+    //   ⇒ 视口坐标: left = -2vw + 15% × 56vw = 6.4vw
+    //              width = 65% × 56vw = 36.4vw
+    //              top = 17.5vh, height = 65vh
+    // TesseractExperience 仅 desktop 挂载，所以无需响应式
+    <div style={{
+      position: 'fixed',
+      top: '17.5vh',
+      left: '6.4vw',
+      width: '36.4vw',
+      height: '65vh',
+      zIndex: 7,
+      pointerEvents: 'none',
     }}>
       <Canvas
         shadows // 启用阴影

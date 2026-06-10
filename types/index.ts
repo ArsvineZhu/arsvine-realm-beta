@@ -149,6 +149,8 @@ export interface SitePages {
   content: { description: string };
   /** /friends 页 title / description / 顶部 heading */
   friends: { title: string; description: string; heading: string };
+  /** /copyright 页 title / description */
+  copyright: { title: string; description: string };
 }
 
 // ============================================================

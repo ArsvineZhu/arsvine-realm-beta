@@ -22,7 +22,7 @@ export default function FriendsPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.friendLinkCard}
-                data-cursor-no-magnetic
+                data-cursor-label="VISIT"
               >
                 <div className={styles.friendLinkAvatar}>
                   <img src={link.avatar} alt={link.name} />

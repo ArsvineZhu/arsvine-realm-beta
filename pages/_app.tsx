@@ -1,6 +1,8 @@
 import { useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import '../styles/globals.scss';
 import { AppProvider } from '../contexts/AppContext';
 import { TransitionProvider } from '../contexts/TransitionContext';
@@ -23,6 +25,8 @@ function MyApp({ Component, pageProps }) {
           </div>
         </MainLayout>
       </TransitionProvider>
+      <Analytics />
+      <SpeedInsights />
     </AppProvider>
   );
 }

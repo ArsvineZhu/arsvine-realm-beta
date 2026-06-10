@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import styles from '../../styles/Home.module.scss';
 import Noise from '../effects/Noise';
 import { siteConfig } from '../../data/site';
@@ -25,7 +26,10 @@ export default function AboutSection({
           <p>Online Now: {currentVisitors}</p>
         </div>
         <div className={styles.footerInfo}>
-          MIT {yearRange} © {siteConfig.author}
+          <p>Code licensed under MIT.</p>
+          <p>Content licensed under CC BY-NC-ND 4.0 unless otherwise stated.</p>
+          <p><Link href="/copyright">Details →</Link></p>
+          <p>© {yearRange} {siteConfig.author}.</p>
         </div>
 
       </div>

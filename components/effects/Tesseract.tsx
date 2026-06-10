@@ -35,7 +35,7 @@ const Tesseract = forwardRef(({
   const chargeCooldownRef = useRef(false); // 充电冷却状态引用，防止短时间多次触发
   const dragStartPos = useRef(new THREE.Vector3()); // 拖拽开始时 Tesseract 的位置
   // const dragStartMouse = useRef({ x: 0, y: 0 }); // 拖拽开始时鼠标位置 (当前未使用)
-  const { camera, mouse /*, viewport*/ } = useThree(); // R3F hooks 获取相机、鼠标等
+  const { camera, mouse } = useThree(); // R3F hooks 获取相机、鼠标
   
   // Three.js 对象引用和缓存 (用于拖拽计算)
   const raycaster = useMemo(() => new THREE.Raycaster(), []); // 光线投射器
@@ -49,6 +49,11 @@ const Tesseract = forwardRef(({
   const innerSize = 0.2; // 内层立方体边长
   const halfOuter = outerSize / 2;
   const halfInner = innerSize / 2;
+  // 拖拽时 NDC 边距：留出立方体半边在画布内，避免贴边时立方体被裁
+  // 0.1 在 1024×600 的画布上约 ~50px、~30px，视觉上正好与立方体一致
+  const ndcMargin = 0.1;
+  // 拖拽 Y 下限：地面在 TesseractExperience 中位于 Y=-3，留出立方体半边避免穿透引发暴弹
+  const dragMinY = -3 + halfOuter + 0.05;
 
   // Cannon.js 物理引擎设置 (应用到 groupRef)
   const [physicsRef, api] = useBox(() => ({
@@ -140,12 +145,18 @@ const Tesseract = forwardRef(({
 
     // --- 正在拖拽时的逻辑 ---
     if (isDragging) {
-      // 将鼠标 NDC 坐标转换为 3D 世界坐标中的拖拽目标点
-      mouseNDC.set(mouse.x, mouse.y);
+      // 将鼠标 NDC 坐标 clamp 在 [-1+margin, 1-margin]，再做 raycast
+      // 这样无论鼠标移到 Canvas 外多远，目标点都保持在画布视锥内
+      const clampedNdcX = Math.max(-1 + ndcMargin, Math.min(1 - ndcMargin, mouse.x));
+      const clampedNdcY = Math.max(-1 + ndcMargin, Math.min(1 - ndcMargin, mouse.y));
+      mouseNDC.set(clampedNdcX, clampedNdcY);
       raycaster.setFromCamera(mouseNDC, camera);
       if (raycaster.ray.intersectPlane(targetPlane.current, targetPosition)) {
+        // 防止拖到地面以下：穿透会让物理引擎下一帧给出极大反弹冲量
+        if (targetPosition.y < dragMinY) targetPosition.y = dragMinY;
+
         // 使用物理 API 将 Tesseract 瞬移到目标点 (模拟拖拽)
-        api.position.set(targetPosition.x, targetPosition.y, targetPosition.z); 
+        api.position.set(targetPosition.x, targetPosition.y, targetPosition.z);
         api.velocity.set(0, 0, 0); // 清除速度，避免拖拽时漂移
         api.angularVelocity.set(0, 0, 0); // 清除角速度
 

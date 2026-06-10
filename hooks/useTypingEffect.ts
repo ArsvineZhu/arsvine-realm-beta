@@ -3,81 +3,158 @@ import type { FateTypingState, EnvParamsTypingState, EnvData } from '../types';
 import { siteConfig } from '../data/site';
 
 /**
- * Fate text typing effect — alternates between English and Chinese text
+ * Fate text typing effect — 节奏：
+ *   1 轮预设 (en + zh) → 1 句 hitokoto → 1 轮预设 → 1 句 hitokoto → ...
+ *
+ * hitokoto 句子从 /api/hitokoto 拉取（服务端代理 https://v1.hitokoto.cn）。
+ * 拉取失败时本轮回退为一轮预设，下一轮继续尝试 hitokoto，避免上游故障时卡死。
+ *
+ * 一句一言之后立刻回到预设，是为了避开 /api/hitokoto 的 60s 进程内缓存——
+ * 连续多次拉到同一句会让用户觉得"中文反复出现"。一言句子停留时间也比预设
+ * 中文更长（HITOKOTO_PAUSE_AFTER_TYPE），让短句的呼吸感更明显。
  */
+const HITOKOTO_PER_CYCLE = 1;
+const HITOKOTO_PAUSE_AFTER_TYPE = 4000; // ms，比预设的 1500 长，给短句更长停留
+
 export function useFateTypingEffect(textVisible: boolean): FateTypingState {
   const [displayedFateText, setDisplayedFateText] = useState('');
   const [isFateTypingActive, setIsFateTypingActive] = useState(false);
 
   useEffect(() => {
-    if (textVisible) {
-      const englishText = siteConfig.tagline.en;
-      const chineseText = siteConfig.tagline.zh;
-      const typingDelay = 80;
-      const deleteDelay = 50;
-      const chineseTypingDelay = 150;
-      const chineseDeleteDelay = 100;
-      const pauseAfterType = 1500;
-      const pauseAfterDelete = 500;
+    if (!textVisible) return;
 
-      let timeouts = [];
-      setIsFateTypingActive(true);
+    const englishText = siteConfig.tagline.en;
+    const chineseText = siteConfig.tagline.zh;
+    const typingDelay = 80;
+    const deleteDelay = 50;
+    const chineseTypingDelay = 150;
+    const chineseDeleteDelay = 100;
+    const pauseAfterType = 1500;
+    const pauseAfterDelete = 500;
 
-      const typeString = (str, index, delay, callback) => {
-        if (index < str.length) {
-          setDisplayedFateText(prev => prev + str[index]);
-          const timeoutId = setTimeout(() => typeString(str, index + 1, delay, callback), delay);
-          timeouts.push(timeoutId);
-        } else if (callback) {
-          const timeoutId = setTimeout(callback, 0);
-          timeouts.push(timeoutId);
-        }
-      };
+    let timeouts: ReturnType<typeof setTimeout>[] = [];
+    let cancelled = false;
+    const abortControllers: AbortController[] = [];
+    setIsFateTypingActive(true);
 
-      const deleteString = (currentStr, delay, callback) => {
-        if (currentStr.length > 0) {
-          setDisplayedFateText(prev => prev.slice(0, -1));
-          const timeoutId = setTimeout(() => deleteString(currentStr.slice(0, -1), delay, callback), delay);
-          timeouts.push(timeoutId);
-        } else if (callback) {
-          const timeoutId = setTimeout(callback, 0);
-          timeouts.push(timeoutId);
-        }
-      };
+    const schedule = (fn: () => void, delay: number) => {
+      const id = setTimeout(() => {
+        if (cancelled) return;
+        fn();
+      }, delay);
+      timeouts.push(id);
+    };
 
-      const sequence = () => {
-        typeString(englishText, 0, typingDelay, () => {
-          const timeoutId1 = setTimeout(() => {
-            deleteString(englishText, deleteDelay, () => {
-              const timeoutId2 = setTimeout(() => {
-                typeString(chineseText, 0, chineseTypingDelay, () => {
-                  const timeoutId3 = setTimeout(() => {
-                    deleteString(chineseText, chineseDeleteDelay, () => {
-                      const timeoutId4 = setTimeout(() => {
-                        sequence();
-                      }, pauseAfterDelete);
-                      timeouts.push(timeoutId4);
-                    });
-                  }, pauseAfterType);
-                  timeouts.push(timeoutId3);
-                });
-              }, pauseAfterDelete);
-              timeouts.push(timeoutId2);
-            });
-          }, pauseAfterType);
-          timeouts.push(timeoutId1);
+    const typeString = (str: string, index: number, delay: number, callback?: () => void) => {
+      if (cancelled) return;
+      if (index < str.length) {
+        setDisplayedFateText(prev => prev + str[index]);
+        schedule(() => typeString(str, index + 1, delay, callback), delay);
+      } else if (callback) {
+        schedule(callback, 0);
+      }
+    };
+
+    const deleteString = (currentStr: string, delay: number, callback?: () => void) => {
+      if (cancelled) return;
+      if (currentStr.length > 0) {
+        setDisplayedFateText(prev => prev.slice(0, -1));
+        schedule(() => deleteString(currentStr.slice(0, -1), delay, callback), delay);
+      } else if (callback) {
+        schedule(callback, 0);
+      }
+    };
+
+    // 一轮预设：en (英文节奏) → zh (中文节奏)
+    const presetCycle = (onDone: () => void) => {
+      typeString(englishText, 0, typingDelay, () => {
+        schedule(() => {
+          deleteString(englishText, deleteDelay, () => {
+            schedule(() => {
+              typeString(chineseText, 0, chineseTypingDelay, () => {
+                schedule(() => {
+                  deleteString(chineseText, chineseDeleteDelay, () => {
+                    schedule(onDone, pauseAfterDelete);
+                  });
+                }, pauseAfterType);
+              });
+            }, pauseAfterDelete);
+          });
+        }, pauseAfterType);
+      });
+    };
+
+    // 一句 hitokoto：fetch → 按中文节奏打/删；失败则回退一轮预设
+    const hitokotoCycle = (onDone: () => void, onFail: () => void) => {
+      const controller = new AbortController();
+      abortControllers.push(controller);
+      fetch('/api/hitokoto', { signal: controller.signal })
+        .then(async (res) => {
+          if (!res.ok) throw new Error(`status ${res.status}`);
+          const data = await res.json();
+          const text = typeof data?.text === 'string' ? data.text.trim() : '';
+          if (!text) throw new Error('empty text');
+          return text;
+        })
+        .then((text) => {
+          if (cancelled) return;
+          typeString(text, 0, chineseTypingDelay, () => {
+            schedule(() => {
+              deleteString(text, chineseDeleteDelay, () => {
+                schedule(onDone, pauseAfterDelete);
+              });
+            }, HITOKOTO_PAUSE_AFTER_TYPE);
+          });
+        })
+        .catch((err) => {
+          if (cancelled) return;
+          // AbortError 是组件卸载时的正常清理，不算失败
+          if ((err as Error)?.name === 'AbortError') return;
+          console.warn('[useFateTypingEffect] hitokoto fetch failed, fallback to preset:', (err as Error).message);
+          onFail();
         });
-      };
+    };
 
-      sequence();
+    // 主调度器
+    let hitokotoCount = 0;
+    const runHitokoto = () => {
+      if (cancelled) return;
+      if (hitokotoCount >= HITOKOTO_PER_CYCLE) {
+        loop();
+        return;
+      }
+      hitokotoCycle(
+        () => {
+          hitokotoCount++;
+          runHitokoto();
+        },
+        // 失败：回退一轮预设，下一轮重新开始尝试 hitokoto
+        () => {
+          presetCycle(() => {
+            hitokotoCount = 0;
+            runHitokoto();
+          });
+        },
+      );
+    };
 
-      return () => {
-        timeouts.forEach(clearTimeout);
-        setDisplayedFateText('');
-        setIsFateTypingActive(false);
-        timeouts = [];
-      };
-    }
+    const loop = () => {
+      presetCycle(() => {
+        hitokotoCount = 0;
+        runHitokoto();
+      });
+    };
+
+    loop();
+
+    return () => {
+      cancelled = true;
+      timeouts.forEach(clearTimeout);
+      abortControllers.forEach((c) => c.abort());
+      timeouts = [];
+      setDisplayedFateText('');
+      setIsFateTypingActive(false);
+    };
   }, [textVisible]);
 
   return { displayedFateText, isFateTypingActive };
