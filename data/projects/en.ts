@@ -17,7 +17,7 @@ export const webProjects: Project[] = [
       'Blended with Hypergryph-inspired aesthetics',
     ],
     link: '#',
-    liveUrl: 'https://arsvine.com',
+    liveUrl: '',
     imageUrl: cover('arsvine-realm-preview.webp'),
     galleryImages: [
       { src: post('arsvine-realm-sceenshot-1.png') },
@@ -40,7 +40,7 @@ The project began as a redevelopment of RainMorime, a general portfolio template
       'Dark mode support',
     ],
     link: '#',
-    liveUrl: 'https://endfield.arsvine.com',
+    liveUrl: '',
     imageUrl: cover('endfield-planner-preview.png'),
     galleryImages: [
       { src: post('endfield-planner-screenshot-1.png') },

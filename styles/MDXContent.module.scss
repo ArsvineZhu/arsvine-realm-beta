@@ -419,6 +419,7 @@
   padding: 10px 14px;
   font-family: var(--font-reading);
   font-size: var(--fs-base);
+  font-style: normal;
   line-height: 1.7;
   color: rgba(230, 230, 230, 0.92);
   background: rgba(15, 15, 18, 0.95);
@@ -580,19 +581,27 @@
   }
 
   .explainTooltip {
-    // 移动端：脱离段落 stacking context（.contentBody 的子段落都因 transform
-    // 入场动画各自创建 context；absolute 定位的 tooltip 即便 z-index 极高，
-    // 也只能在自己段落 context 内层叠，无法跨越后续 sibling 段落 context），
-    // 改用 fixed 固定到屏幕底部 sheet 形态。
+    // 移动端：absolute + left:0 会让 tooltip 锚在触发器左缘往右展开，
+    // 触发器靠近右边时直接顶出视口右侧。改用 fixed 横向锁视口左右 12px；
+    // top 由 Explain.tsx 测量触发器底部后注入 inline 样式（视觉上仍跟在
+    // 原文下方）。fixed + 正文滚动会脱位，所以 Explain.tsx 在移动端 open
+    // 期间监听 scroll/resize 自动关闭。
     position: fixed;
-    top: auto;
     left: 12px;
     right: 12px;
-    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    bottom: auto;
     width: auto;
     max-width: none;
-    z-index: 200;
+    z-index: 1100; // 高于 _layout.scss .bottomBar 的 1002
     font-size: var(--fs-caption);
     padding: 12px 14px;
+    // 长 note 不顶出可视区；tooltip 内可滚
+    max-height: 50vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    // 覆盖桌面 base 的 pointer-events: none，让 tooltip 内能滚动；
+    // 关闭交给 Explain 组件的 outside pointerdown / Escape / scroll 监听
+    pointer-events: auto;
   }
 }

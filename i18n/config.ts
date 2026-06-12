@@ -37,7 +37,7 @@ export const rssLanguageMap: Record<Locale, string> = {
 export const localeShortLabel: Record<Locale, string> = {
   'zh-CN': '简中',
   'zh-TW': '繁中',
-  en: 'Eng',
+  en: 'ENG',
 };
 
 /** locale → 自语言下的可读全名（fallback banner 用） */

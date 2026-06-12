@@ -17,7 +17,7 @@ export const webProjects: Project[] = [
       '融合鷹角設計美學',
     ],
     link: '#',
-    liveUrl: 'https://arsvine.com',
+    liveUrl: '',
     imageUrl: cover('arsvine-realm-preview.webp'),
     galleryImages: [
       { src: post('arsvine-realm-sceenshot-1.png') },
@@ -40,7 +40,7 @@ export const webProjects: Project[] = [
       '支援深色模式',
     ],
     link: '#',
-    liveUrl: 'https://endfield.arsvine.com',
+    liveUrl: '',
     imageUrl: cover('endfield-planner-preview.png'),
     galleryImages: [
       { src: post('endfield-planner-screenshot-1.png') },

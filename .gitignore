@@ -40,7 +40,8 @@ next-env.d.ts
 .vscode/
 *.sublime-project
 *.sublime-workspace
-docs/superpowers/
+docs/*
+!docs/preview.png
 
 # OS generated files
 Thumbs.db

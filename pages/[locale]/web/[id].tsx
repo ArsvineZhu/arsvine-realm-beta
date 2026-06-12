@@ -133,7 +133,7 @@ function WebDetailContent({ locale, project, webProjects, copyableTokens, transl
   const prevProject = currentIndex > 0 ? webProjects[currentIndex - 1] : null;
   const nextProject = currentIndex < webProjects.length - 1 ? webProjects[currentIndex + 1] : null;
 
-  const subtitle = useTypingSubtitle(project.description, 120, 2200);
+  const subtitle = useTypingSubtitle(project.description, 55, 900);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const { visible, setRef } = useScrollReveal(wrapperRef);
   const heroRef = useRef<HTMLElement>(null);
