@@ -7,7 +7,7 @@
     "visit": "Visit",
     "sourceCode": "Source Code",
     "watch": "Watch",
-    "copied": "Copied!",
+    "copied": "Copied",
     "loading": "Loading…",
     "decoding": "DECODING TRANSMISSION…",
     "signalFragment": "// SIGNAL_FRAGMENT",
@@ -52,7 +52,7 @@
     },
     "contact": {
       "links": "Links",
-      "copied": "Copied!",
+      "copied": "Copied",
       "rss": "RSS"
     },
     "about": {

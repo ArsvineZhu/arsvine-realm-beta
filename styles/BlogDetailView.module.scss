@@ -96,6 +96,13 @@
   padding-bottom: 0.1em;
 }
 
+// 拉丁单词外套，防止 charWrapper 在词中断行（white-space: nowrap）。
+// CJK 段不被这层包裹，按字断行行为不受影响。
+.wordWrapper {
+  display: inline-block;
+  white-space: nowrap;
+}
+
 .headerMeta {
   display: flex;
   align-items: center;

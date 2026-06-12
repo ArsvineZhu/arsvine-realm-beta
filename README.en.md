@@ -2,7 +2,7 @@
 
 # ARSVINE REALM
 
-ARSVINE REALM is a personal portfolio and blog site built around a post-apocalyptic sci-fi HUD visual language. It presents projects, experience, life records, blog posts, friend links, and contact information, while keeping interactive features such as real-time visitor stats, a music player, animated route transitions, and WebGL/Three.js atmospheric effects.
+ARSVINE REALM is a personal portfolio and blog site built around a post-apocalyptic sci-fi HUD visual language. It presents projects, experience, life records, blog posts, friend links, and contact information, while keeping interactive features such as a music player, animated route transitions, and WebGL/Three.js atmospheric effects.
 
 ![Preview](./docs/preview.png)
 
@@ -24,7 +24,6 @@ ARSVINE REALM is a personal portfolio and blog site built around a post-apocalyp
 - **Life detail pages**: `/life/[slug]` renders detailed records from the life data set.
 - **MDX blog**: `content/blog/*.mdx` powers the blog list, post pages, RSS feed, and sitemap entries.
 - **Music player**: the playlist lives in `data/music.ts`; audio files are placed in `public/music/`. Any format supported by the browser's native `<audio>` decoder can be used, including `.mp3`, `.m4a`, `.flac`, `.wav`, and `.ogg`.
-- **Real-time stats**: the custom `server.js` provides `/api/sse/stats` and `/api/stats` for online visitors, total visits, and accumulated runtime.
 - **Hitokoto proxy**: `/api/hitokoto` proxies `v1.hitokoto.cn` with a 60-second in-process cache and a 5-second timeout. The home-page typewriter alternates between the configured tagline and one hitokoto sentence per cycle.
 - **Copyright & License page**: `/copyright` shows bilingual terms (MIT for source, CC BY-NC-ND 4.0 for original content); `/license` permanently redirects to `/copyright`.
 - **SEO / feed files**: `/sitemap.xml`, `/rss.xml`, and `/robots.txt` are generated from site configuration.
@@ -40,7 +39,7 @@ npm run dev
 
 Open `http://localhost:3000`.
 
-> Note: both development and production use the custom `server.js`. Do not replace it with `next dev` or `next start`, otherwise the SSE stats system will not run as designed.
+> Note: both development and production use the custom `server.js` (a thin Next.js wrapper with graceful-shutdown hooks). It can be replaced with `next dev` / `next start` if you want, but `npm run dev` / `npm start` go through `server.js` by default.
 
 ## Commands
 
@@ -177,9 +176,11 @@ Stylesheets pull fonts through CSS variables defined in [styles/globals.scss](st
 
 Blog frontmatter does **not** need a `readingTime` field. At build time [lib/blog.ts](lib/blog.ts) calls the in-house `estimateReadingMinutes(content, locale)`:
 
-- CJK content (`zh-CN` / `zh-TW` / `ja`): character count ÷ 400 cpm
-- Latin content (`en` / `ru` / `fr`): word count ÷ 230 wpm
+- CJK characters: 200 cpm (chars per minute)
+- Latin words: 115 wpm (words per minute)
 - Mixed content is weighted automatically (fenced code, inline code, HTML/JSX tags, MDX `import|export` lines are stripped first)
+
+> These are deliberately a "slow read" pace (about half typical reading speed). Posts often contain code blocks, images, and pause-for-thought passages, so the original 400/230 figures consistently underestimated real reading time. Slow-read became the standard from 2026/06 onward.
 
 UI rendering goes through [lib/format-reading-time.ts](lib/format-reading-time.ts), which formats per the current UI locale. `BlogPostMeta` only carries the numeric `readingMinutes: number`.
 
@@ -199,14 +200,33 @@ UI rendering goes through [lib/format-reading-time.ts](lib/format-reading-time.t
 
 ### Blog Posts
 
-Create `.mdx` files in `content/blog/`:
+Create `.mdx` files. Recommended structure (one folder per post, one MDX file per locale):
+
+```text
+content/blog/<slug>/
+├── zh-CN.mdx     # Simplified Chinese (default fallback)
+├── zh-TW.mdx     # Traditional Chinese (optional)
+├── en.mdx        # English (optional)
+├── ja.mdx        # Japanese (content-only locale; surrounding UI stays in user's UI locale)
+├── ru.mdx
+└── fr.mdx
+```
+
+UI locales `zh-CN | zh-TW | en` are defined in [i18n/config.ts](i18n/config.ts). When the requested UI locale lacks an MDX variant, [lib/blog.ts](lib/blog.ts) falls back to `zh-CN` and marks `translationStatus: 'fallback'` — the post page then shows a fallback banner at the top. `ja | ru | fr` are content-only languages exposed via a per-post language switcher inside the post page.
+
+> The legacy layout `content/blog/foo.mdx` / `content/blog/foo.en.mdx` still works, but new posts should use the per-folder structure above.
+
+Frontmatter fields:
 
 ```mdx
 ---
 title: "Post Title"
 date: "2026-01-01"
+updated: "2026-01-05"   # optional; RSS / sitemap use updated ?? date
 excerpt: "A short excerpt."
 tags: ["tag-a", "tag-b"]
+pinned: false           # optional; pin to the top of the list
+originLocale: zh-CN     # optional; whether this file is the source-language original
 ---
 
 Write the body in Markdown / MDX.
@@ -218,6 +238,23 @@ The blog system reads frontmatter and generates:
 - `/blog/[slug]` post pages
 - `/rss.xml`
 - `/sitemap.xml`
+
+#### Inline Annotation Components (`<Term>` / `<Explain>`)
+
+[components/mdx/MDXComponents.tsx](components/mdx/MDXComponents.tsx) injects two inline annotation primitives:
+
+| Component | Renders | Use case |
+|---|---|---|
+| `<Term note="...">word</Term>` | Native `<ruby><rt>` — annotation **always visible** above the term | Proper nouns, abbreviations, foreign-language terms — when a tiny inline gloss is enough |
+| `<Explain note="...">phrase</Explain>` | Trigger with dotted underline; tooltip on hover (desktop) / click (touch) | Sentence-level explanations, when the note is long enough that you don't want it permanently in view |
+
+```mdx
+He read the prompt on the <Term note="National Paper I, the Chinese Gaokao Chinese-language exam">全国 I 卷</Term>.
+
+For a while, he became <Explain note="A long-running mental state of self-driven over-evaluation">a star that refuses to stop burning</Explain>.
+```
+
+`<Term>` degrades gracefully on browsers without ruby support (and when copied as plain text) to `word(note)`. `<Explain>` switches to a fixed bottom sheet on mobile so the next paragraph cannot cover it; on desktop the tooltip floats next to the trigger.
 
 ### Music Player
 
@@ -257,18 +294,8 @@ When adding an image CDN or object-storage domain, edit only this file, then res
 
 > Post / content images should render via `next/image` with `unoptimized={true}` (direct-linking `cdn.arsvine.com`) to bypass Vercel Hobby's Image Optimization quota (1,000 source images / month) and avoid `/_next/image` re-fetches that would burn the COS outbound-traffic package. COS billing is pay-as-you-go beyond the 10GB monthly traffic package — configure a budget alert in Tencent Billing Center.
 
-### Stats Persistence
+### Server Endpoints
 
-`server.js` writes stats to `.stats.json` in the project root by default. If the deployment environment should not write to the project directory, set:
-
-```env
-STATS_FILE=/var/lib/portfolio/stats.json
-```
-
-Related endpoints:
-
-- `GET /api/stats`: accumulated runtime and total visits
-- `GET /api/sse/stats`: SSE stream for online visitors and total visits
 - `GET /api/hitokoto`: server-side proxy for `v1.hitokoto.cn`, returns `{ text }`; 60-second in-process cache, 5-second timeout; falls back to `502 { error: 'upstream_unavailable' }` on upstream failure
 
 ## Environment Variables
@@ -282,7 +309,6 @@ NEXT_PUBLIC_SITE_URL=https://example.com
 # NEXT_PUBLIC_UMAMI_WEBSITE_ID=your-website-id
 # NEXT_PUBLIC_UMAMI_DOMAINS=your-domain.com,www.your-domain.com
 # NEXT_PUBLIC_MEDIA_CDN=https://cdn.arsvine.com
-# STATS_FILE=/var/lib/portfolio/stats.json
 ```
 
 Notes:
@@ -292,7 +318,6 @@ Notes:
 - `NEXT_PUBLIC_UMAMI_SRC` / `NEXT_PUBLIC_UMAMI_WEBSITE_ID`: optional Umami script config; the `<script>` tag is only injected when `SRC` is set. The injection lives in `pages/_document.tsx` and always carries `defer` / `data-do-not-track="true"` / `data-exclude-search="true"`.
 - `NEXT_PUBLIC_UMAMI_DOMAINS`: optional, comma-separated allowlist (no protocol). When set, the Umami tracker only reports under those domains — `localhost` and Vercel preview deployments are silently skipped, which keeps your stats clean.
 - `NEXT_PUBLIC_MEDIA_CDN`: optional media CDN base URL (e.g. `https://cdn.arsvine.com`, backed by Tencent COS Hong Kong bucket `arsvine-cdn`). Consumed by `data/music.ts`; when unset the music player serves files from `/public/music/` instead.
-- `STATS_FILE`: server-side stats persistence path; defaults to `.stats.json` in the project root.
 
 ### Umami Event Tracking (Optional)
 
@@ -352,7 +377,7 @@ Event names have a 50-character limit; properties accept arbitrary key-value pai
 ├── public/              # Static assets, images, and music directory
 ├── styles/              # SCSS Modules and shared partials
 ├── types/               # TypeScript type definitions
-└── server.js            # Custom Next.js + SSE server
+└── server.js            # Custom Next.js server (thin wrapper with graceful shutdown)
 ```
 
 ## Tech Stack
@@ -365,7 +390,7 @@ Event names have a 50-character limit; properties accept arbitrary key-value pai
 - `@react-three/cannon` + `cannon-es` (Tesseract physics)
 - GSAP
 - MDX / `next-mdx-remote`
-- Node.js custom server + SSE
+- Node.js custom server (thin Next.js wrapper)
 - ESLint flat config + `eslint-config-next/core-web-vitals`
 
 ## Development Notes
@@ -406,10 +431,7 @@ Recommended production environment variables:
 ```env
 NODE_ENV=production
 NEXT_PUBLIC_SITE_URL=https://your-domain.com
-STATS_FILE=/persistent/path/stats.json
 ```
-
-Make sure the runtime user can write to the directory containing `STATS_FILE`.
 
 ## License and Origin
 

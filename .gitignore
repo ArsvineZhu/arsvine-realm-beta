@@ -43,13 +43,10 @@ next-env.d.ts
 docs/superpowers/
 
 # OS generated files
-Thumbs.db 
+Thumbs.db
 public/music/*.flac
 public/music/*.mp3
 public/music/*.m4a
-
-# Stats persistence
-.stats.json
 
 # Deploy
 deploy.log

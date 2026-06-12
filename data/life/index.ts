@@ -9,7 +9,7 @@ export const gameData: LifeItem[] = [
     id: 'arknights',
     title: '明日方舟',
     description: '不只是策略塔防，而是一个用美术、音乐、叙事和世界观共同构成的泰拉。它让我在战斗之外，也不断思考理想、现实与创作本身。',
-    tech: ['Strategy', 'Tower Defense', 'Mobile Game'],
+    tech: ['策略', '塔防', '移动端', '官方'],
     link: '#',
     imageUrl: cover('arknights-cover.png'),
     articleContent: `《明日方舟》对我来说，不只是一款策略塔防手游。它真正吸引我的地方，是它用冷峻、克制又极具设计感的方式，构建了一个复杂而残酷的世界：感染者、移动城邦、天灾、国家冲突、企业与组织，每一个设定都不是单纯为了“酷”，而是在共同支撑泰拉大陆那种沉重而真实的秩序。
@@ -32,7 +32,7 @@ export const gameData: LifeItem[] = [
     id: 'arknights-endfield',
     title: '明日方舟:终末地',
     description: '',
-    tech: ['3D RPG', 'Strategy', 'Action', 'Factory Building', 'Cross-platform'],
+    tech: ['3D RPG', '策略', '动作', '工厂建设', '跨平台'],
     link: '#',
     imageUrl: cover('endfield-cover.webp'),
     articleContent: `《明日方舟：终末地》对我来说，最有吸引力的地方并不只是它继承了“明日方舟”这个名字，而是它把原本属于泰拉大陆的世界观气质，延伸到了一个更加辽阔、陌生，也更接近“开拓叙事”的空间之中。它不再只是罗德岛在移动城邦与感染者问题之间周旋，而是把视角推向塔卫二，推向终末地工业，推向一个需要被探索、建设和重新理解的边疆世界。
@@ -52,7 +52,7 @@ export const gameData: LifeItem[] = [
     id: 'death-stranding',
     title: '死亡搁浅',
     description: '不只是因为它讲述了孤独与连接，而是因为它让我相信：即使身处破碎的世界，人依然可以用一次次微小的传递，把彼此重新连起来。',
-    tech: ['Action', 'Open-world', 'Strand game', 'PS4/PS5'],
+    tech: ['动作', '开放世界', '羁绊/链接', 'PS4/PS5'],
     link: '#',
     imageUrl: cover('death-stranding-cover.jpg'),
     articleContent: `我玩《死亡搁浅》的经历，很难简单归类为“通关了一款游戏”。它特别的地方不在于战斗有多刺激，而在于它把行走、运送、孤独和连接变成了一种真实的情绪体验。很多时候，我只是背着货物穿过荒原、翻过雪山、避开时间雨，在漫长而安静的路途中感受到一种奇妙的重量：不是任务的重量，而是“把某样东西送到别人手里”的意义。
@@ -74,7 +74,7 @@ export const travelData: LifeItem[] = [
     id: 'zhenjiang',
     title: '镇江',
     description: '意外之喜的江南古城',
-    tech: ['Travel', 'Stay'],
+    tech: ['暂居', '旅行'],
     link: '#',
     imageUrl: cover('zhenjiang-cover.jpg'),
     articleContent: `根本算不上旅游好吧，因为就在这里上学来着...

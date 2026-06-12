@@ -10,6 +10,7 @@ import { serialize } from 'next-mdx-remote/serialize';
 import MDXComponents from '../../../components/mdx/MDXComponents';
 import LocaleFallbackBanner from '../../../components/shared/LocaleFallbackBanner';
 import HreflangLinks from '../../../components/shared/HreflangLinks';
+import { AnimatedTitleChars } from '../../../components/shared/AnimatedTitleChars';
 import {
   getPostBySlugAndLocale,
   getPostBySlugAndContentLocale,
@@ -207,6 +208,10 @@ function BlogDetailContent({
           el.style.transitionDelay = `${i * 0.07}s`;
           el.style.opacity = '1';
           el.style.transform = 'translateY(0)';
+          el.addEventListener('transitionend', () => {
+            el.style.transitionDelay = '';
+            el.style.transform = 'none';
+          }, { once: true });
           observer.unobserve(el);
         });
       },
@@ -325,11 +330,13 @@ function BlogDetailContent({
           <div className={styles.headerContent}>
             <span className={styles.headerSignal}>{tCommon('signalFragment')}</span>
             <h1 ref={titleRef} className={styles.headerTitle}>
-              {meta.title.split("").map((char, i) => (
-                <span key={`t-${i}`} className={styles.charWrapper}>
-                  <span className={styles.charInner}>{char === ' ' ? ' ' : char}</span>
-                </span>
-              ))}
+              <AnimatedTitleChars
+                text={meta.title}
+                wrapperClassName={styles.charWrapper}
+                innerClassName={styles.charInner}
+                wordWrapperClassName={styles.wordWrapper}
+                uppercase={false}
+              />
             </h1>
             <div className={styles.headerMeta}>
               {meta.date && <span className={styles.headerDate}>{meta.date}</span>}

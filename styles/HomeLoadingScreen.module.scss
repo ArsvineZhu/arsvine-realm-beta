@@ -40,7 +40,6 @@
   align-items: center;
   z-index: 1000;
   overflow: hidden;
-  will-change: opacity, transform;
   box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.8);
   @extend .variables;
 }
@@ -59,7 +58,6 @@
   background-blend-mode: overlay;
   opacity: 0.9;
   overflow: hidden;
-  will-change: opacity;
   @extend .variables;
 }
 
@@ -905,7 +903,6 @@
   position: absolute;
   background-color: var(--hud-element-color);
   border-radius: 50%;
-  will-change: opacity;
 }
 
 // ===== Bio Signal =====

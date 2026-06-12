@@ -92,6 +92,9 @@ export interface BlogPostMeta {
   slug: string;
   title: string;
   date: string;
+  /** 最后修改时间（ISO 字符串，可选）。来自 frontmatter 的 `updated` 字段；
+   *  RSS / sitemap 使用 `updated ?? date` 以保证修订后阅读器与搜索引擎能感知更新。 */
+  updated?: string;
   excerpt: string;
   tags: string[];
   /** 结构化阅读时长（分钟），供 UI 按当前界面语言自行格式化 */
@@ -244,8 +247,6 @@ export interface RealtimeStatsState {
   currentTime: string;
   runtime: string;
   currentVisitDuration: string;
-  totalVisits: number | string;
-  currentVisitors: number;
 }
 
 export interface FateTypingState {

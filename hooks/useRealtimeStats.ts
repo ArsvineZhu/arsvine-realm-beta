@@ -22,95 +22,50 @@ function formatRuntime(uptimeMs: number): string {
 
 export default function useRealtimeStats(): RealtimeStatsState {
   const [currentTime, setCurrentTime] = useState('00:00:00');
+  // 初值固定为 0，避免 SSR / 首屏 hydration 时差异；mount 后立刻在 effect 里更新到真实值
   const [runtime, setRuntime] = useState('000:00:00:00');
   const [currentVisitDuration, setCurrentVisitDuration] = useState('000:00:00:00');
-  const [totalVisits, setTotalVisits] = useState<number | string>(0);
-  const [currentVisitors, setCurrentVisitors] = useState(0);
 
   const visitStartedAtRef = useRef<number>(0);
 
-  // SSE connection + runtime stats
+  // Runtime / current-visit-duration tick (purely client-side)
   useEffect(() => {
-    let runtimeInterval: ReturnType<typeof setInterval> | undefined;
-    let es: EventSource | undefined;
+    visitStartedAtRef.current = Date.now();
 
-    const startRuntimeTick = () => {
-      if (runtimeInterval) return;
-      runtimeInterval = setInterval(() => {
-        const now = Date.now();
-        setRuntime(formatRuntime(Math.max(0, now - SYSTEM_LAUNCH_AT)));
-        setCurrentVisitDuration(formatRuntime(Math.max(0, now - visitStartedAtRef.current)));
-      }, 1000);
+    const tick = () => {
+      const now = Date.now();
+      setRuntime(formatRuntime(Math.max(0, now - SYSTEM_LAUNCH_AT)));
+      setCurrentVisitDuration(formatRuntime(Math.max(0, now - visitStartedAtRef.current)));
     };
 
-    const stopRuntimeTick = () => {
-      if (runtimeInterval) {
-        clearInterval(runtimeInterval);
-        runtimeInterval = undefined;
+    let intervalId: ReturnType<typeof setInterval> | undefined;
+    const start = () => {
+      if (intervalId) return;
+      tick();
+      intervalId = setInterval(tick, 1000);
+    };
+    const stop = () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = undefined;
       }
     };
 
-    async function init() {
-      try {
-        const response = await fetch('/api/stats');
-        const data = await response.json();
-        setTotalVisits(data.visits);
-        const now = Date.now();
-        if (!visitStartedAtRef.current) {
-          visitStartedAtRef.current = now;
-        }
-        setRuntime(formatRuntime(Math.max(0, now - SYSTEM_LAUNCH_AT)));
-        setCurrentVisitDuration(formatRuntime(Math.max(0, now - visitStartedAtRef.current)));
-        if (!document.hidden) startRuntimeTick();
-      } catch (error) {
-        console.error('Failed to fetch stats:', error);
-        setTotalVisits('N/A');
-        const now = Date.now();
-        if (!visitStartedAtRef.current) {
-          visitStartedAtRef.current = now;
-        }
-        setRuntime(formatRuntime(Math.max(0, now - SYSTEM_LAUNCH_AT)));
-        setCurrentVisitDuration(formatRuntime(Math.max(0, now - visitStartedAtRef.current)));
-      }
-
-      es = new EventSource('/api/sse/stats');
-      es.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (typeof data.onlineCount === 'number') {
-            setCurrentVisitors(data.onlineCount);
-          }
-        } catch {
-          // ignore malformed messages
-        }
-      };
-      es.onerror = () => {
-        console.warn('SSE connection error, will auto-reconnect.');
-      };
-    }
+    if (!document.hidden) start();
 
     const handleVisibility = () => {
-      if (document.hidden) {
-        stopRuntimeTick();
-      } else {
-        const now = Date.now();
-        setRuntime(formatRuntime(Math.max(0, now - SYSTEM_LAUNCH_AT)));
-        setCurrentVisitDuration(formatRuntime(Math.max(0, now - visitStartedAtRef.current)));
-        startRuntimeTick();
-      }
+      if (document.hidden) stop();
+      else start();
     };
     document.addEventListener('visibilitychange', handleVisibility);
 
-    init();
-
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility);
-      stopRuntimeTick();
-      if (es) es.close();
+      stop();
     };
   }, []);
 
-  // Clock update
+  // Wall-clock tick
   useEffect(() => {
     let intervalId: ReturnType<typeof setInterval> | undefined;
 
@@ -142,5 +97,5 @@ export default function useRealtimeStats(): RealtimeStatsState {
     };
   }, []);
 
-  return { currentTime, runtime, currentVisitDuration, totalVisits, currentVisitors };
+  return { currentTime, runtime, currentVisitDuration };
 }

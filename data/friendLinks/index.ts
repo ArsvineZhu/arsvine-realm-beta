@@ -43,7 +43,7 @@ export const friendLinksData: FriendLink[] = [
   {
     id: '小宁arning',
     name: '小宁arning',
-    description: '给我提供了许多摄影素材 Respect',
+    description: '给我提供了许多摄影素材，Respect！',
     url: 'https://space.bilibili.com/22792017',
     avatar: avatar('avatar-arning-1.webp'),
   },

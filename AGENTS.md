@@ -25,13 +25,7 @@ Flat config extends `eslint-config-next/core-web-vitals` and enables four React 
 
 ### Custom Server (`server.js`)
 
-The dev and production servers both use `server.js`, not Next.js's built-in server. This server provides:
-- SSE endpoint at `/api/sse/stats` — pushes online visitor count and total visits to connected clients
-- REST endpoint at `/api/stats` — returns accumulated runtime and visit count
-- Stats persistence in `.stats.json` by default, or `process.env.STATS_FILE` when set
-- Graceful shutdown that flushes stats
-
-Do not replace `server.js` with `next dev` or `next start` — the SSE stats system depends on it.
+The dev and production servers both use `server.js`, not Next.js's built-in server. It loads `.env.local`, prepares the Next.js app, and adds graceful shutdown hooks. Do not replace `server.js` with `next dev` or `next start` — `npm run dev` / `npm start` rely on it.
 
 ### API Routes (`pages/api/`)
 
@@ -44,7 +38,7 @@ All global state flows through two React contexts:
 - **AppContext** (`contexts/AppContext.tsx`) — composes six custom hooks into a single context:
   - `useAnimationSequence` — loading screen sequence, column retract/expand phases
   - `usePowerSystem` — battery charge level, inversion toggle, Tesseract 3D activation
-  - `useRealtimeStats` — SSE-driven live visitor stats
+  - `useRealtimeStats` — wall-clock + system-uptime + current-visit-duration ticks (purely client-side; no network)
   - `useFateTypingEffect` / `useEnvParamsTypingEffect` — typewriter text effects. `useFateTypingEffect` alternates `1 cycle preset tagline (en + zh)` with `1 hitokoto sentence` pulled from `/api/hitokoto`; on fetch failure the cycle silently falls back to a preset round and retries next iteration.
   - `useColumnHover` — HUD text changes on navigation column hover
 
@@ -74,9 +68,11 @@ All pages consume state via `useApp()` and `useTransition()`.
 ### Content System
 
 - **Data files** (`data/*.ts`) — TypeScript arrays/config for site identity (`data/site.ts`), music playlist (`data/music.ts`), projects, experience, life items, skills, friend links, and project-detail copyable tokens. These are the primary way to maintain site content.
-- **Blog** (`content/blog/*.mdx`) — MDX files with frontmatter (`title`, `date`, `excerpt`, `tags`, `pinned?`, `originLocale?`). Parsed by [lib/blog.ts](lib/blog.ts) using `gray-matter`. Reading time is computed by an in-house [estimateReadingMinutes()](lib/blog.ts) that counts CJK characters and Latin words separately (CJK at 400 cpm, Latin at 230 wpm) — **do not add the `reading-time` npm package back**; it counts whitespace-delimited tokens only, so any 1000-character Chinese post returned `1 min` regardless of length. Code blocks / inline code / HTML/JSX tags / MDX `import|export` lines are stripped before counting. UI strings are produced by [lib/format-reading-time.ts](lib/format-reading-time.ts) per the current UI locale (consumes `readingMinutes: number` on `BlogPostMeta`).
+- **Blog** (`content/blog/*.mdx`) — MDX files with frontmatter (`title`, `date`, `excerpt`, `tags`, `pinned?`, `originLocale?`). Parsed by [lib/blog.ts](lib/blog.ts) using `gray-matter`. Reading time is computed by an in-house [estimateReadingMinutes()](lib/blog.ts) that counts CJK characters and Latin words separately at a **slow-read pace** (CJK 200 cpm, Latin 115 wpm — roughly half typical reading speed, so displayed minutes double). The slower pace accounts for code blocks / images / pause-for-thought passages — the original 400/230 values consistently underestimated real reading time. **Do not add the `reading-time` npm package back**; it counts whitespace-delimited tokens only, so any 1000-character Chinese post returned `1 min` regardless of length. Code blocks / inline code / HTML/JSX tags / MDX `import|export` lines are stripped before counting. UI strings are produced by [lib/format-reading-time.ts](lib/format-reading-time.ts) per the current UI locale (consumes `readingMinutes: number` on `BlogPostMeta`).
 - **Multilingual blog content** — each post lives under `content/blog/<slug>/<locale>.mdx` (preferred) or `content/blog/<slug>.<locale>.mdx` (legacy). Site UI locales are `zh-CN | zh-TW | en` (see [i18n/config.ts](i18n/config.ts)). Posts may additionally exist in `ja | ru | fr` as content-only languages exposed via a per-post language switcher; the surrounding UI stays in the user's chosen UI locale. When a requested UI locale lacks a post variant, [lib/blog.ts](lib/blog.ts) falls back to `defaultLocale` (`zh-CN`) and marks `translationStatus: 'fallback'`.
-- **Custom MDX components** — `components/mdx/MDXComponents.tsx`
+- **Custom MDX components** — [components/mdx/MDXComponents.tsx](components/mdx/MDXComponents.tsx) maps every Markdown primitive (`h1..h3`, `p`, `blockquote`, `a`, lists, `strong`, `em`, `hr`, `code`, `pre`) plus four MDX-only blocks (`Lead`, `Aside`, `Mark`, `Ref`) and two annotation primitives:
+  - **`<Term note="...">word</Term>`** — ruby annotation, always visible above the term ([components/mdx/Term.tsx](components/mdx/Term.tsx)). Renders as native `<ruby><rt>` so plain-text copy and old browsers degrade to `word(note)`. For proper nouns, abbreviations, foreign-language terms — anything where a tiny inline gloss is enough.
+  - **`<Explain note="...">phrase</Explain>`** — sentence-level tooltip ([components/mdx/Explain.tsx](components/mdx/Explain.tsx)). Trigger uses `<span tabIndex={0}>` (NOT `<button>` — buttons are atomic inline-blocks and would force `text-align: center` plus block multi-word line wrapping). Hover/focus on desktop, click on touch; outside-pointerdown / Escape close it. Mobile (`max-width: 767px`) restyles the tooltip into a fixed bottom sheet (see [styles/MDXContent.module.scss:436](styles/MDXContent.module.scss)).
 - **Media hosting** — Music tracks (and future post images/gallery/assets) live on **Tencent COS** (Hong Kong bucket `arsvine-cdn`, region `ap-hongkong`, public-read / private-write) and are served via `cdn.arsvine.com` (DNSPod CNAME → COS origin; no Tencent CDN in front). `data/music.ts` builds each `src` by prefixing `process.env.NEXT_PUBLIC_MEDIA_CDN` to `/music/<file>`; when the env is unset the player falls back to the relative `/music/...` path under `public/` so local dev works without COS. `cdn.arsvine.com` is whitelisted in `config/image-hosts.js` for `next/image`, but post images are expected to render via `next/image` with `unoptimized={true}` (or a plain `<img>`) to bypass Vercel's Image Optimization quota — COS direct origin (no `/_next/image` rewrite) also avoids burning the COS outbound-traffic package via Vercel-side re-fetches.
 
 ### 3D Effects (Desktop Only)
@@ -144,7 +140,6 @@ See `.env.example`:
 - `NEXT_PUBLIC_SITE_URL` — used for sitemap, RSS, robots, and Open Graph URLs
 - `NEXT_PUBLIC_UMAMI_SRC` / `NEXT_PUBLIC_UMAMI_WEBSITE_ID` — optional Umami analytics script config
 - `NEXT_PUBLIC_MEDIA_CDN` — optional media CDN base URL (e.g. `https://cdn.arsvine.com`, backed by Tencent COS Hong Kong bucket `arsvine-cdn`). Consumed by `data/music.ts`; when unset the music player serves files from `/public/music/` instead.
-- `STATS_FILE` — optional server-side stats persistence file path
 
 ## Development Scripts
 
@@ -176,3 +171,6 @@ See `.env.example`:
 - **MusicPlayer "click implies play".** Clicking any track in the playlist must immediately enter play state — track switches set an explicit play-intent flag consumed by the `audio.load()` → `audio.play()` chain in [components/interactive/MusicPlayer.tsx](components/interactive/MusicPlayer.tsx). Don't add an "only auto-play if already playing" guard.
 - **ActivationLever is a `<button>`, not a `<div>`.** It carries `data-cursor-label` and `aria-label`. The discharge lever's label flips to `FULL CHARGE REQUIRED` while battery is below threshold (see [components/layout/LeftPanel.tsx:27-31](components/layout/LeftPanel.tsx)). Keep the button semantics if you restyle it.
 - **Don't shell out to `coscli` in scripts.** Earlier docs/script comments referenced `coscli sync` / `coscli cp` commands; the workflow is **web-console-only** in this project. The trailing `console.log` in [scripts/fetch-google-fonts.mjs](scripts/fetch-google-fonts.mjs) prints the web-console steps directly — keep it that way.
+- **Blog reveal-animation must clear `transform` on `transitionend`.** [pages/[locale]/blog/[slug].tsx](pages/[locale]/blog/[slug].tsx) reveals MDX paragraphs with `IntersectionObserver` + `transform: translateY(20px) → translateY(0)`. After the transition completes, the listener sets `transform: 'none'` (NOT `''` — empty string would fall back to the SCSS initial `translateY(20px)`). The reason is subtle: any non-`none` `transform` creates a CSS stacking context, which traps `<Explain>`'s absolute-positioned tooltip inside its own paragraph — the next sibling paragraph then layers on top of it regardless of `z-index`. If you rewrite this animation, preserve the post-transition `transform: none` step.
+- **`<AnimatedTitleChars>` defaults to UPPERCASE.** [components/shared/AnimatedTitleChars.tsx](components/shared/AnimatedTitleChars.tsx) is shared by web/life detail heroes (which want uppercase) and blog post headers (which don't). Blog must pass `uppercase={false}` — otherwise `"The Moon Does Not Have to Be Full Every Night"` becomes `"THE MOON ..."`. The component also wraps non-CJK words in a `wordWrapperClassName` span (`white-space: nowrap`) to keep long Latin words intact at narrow widths; CJK runs are left unwrapped so they break by character. Always pass `wordWrapperClassName={styles.wordWrapper}` and define a `.wordWrapper { display: inline-block; white-space: nowrap }` rule in the matching SCSS module.
+- **MusicPlayer doesn't auto-open on mobile.** [components/interactive/MusicPlayer.tsx](components/interactive/MusicPlayer.tsx) only auto-opens after 1.5s on desktop (gated on `useResponsive().isMobile === false`). Touch users open it explicitly via the HUD button. If you reintroduce auto-open behavior, keep this guard — a draggable panel covering 60–70% of a phone screen on first paint is not okay.

@@ -344,7 +344,6 @@ function WebDetailContent({ locale, project, webProjects, copyableTokens, transl
         <title>{`${project.title.toUpperCase()} // WORKS`}</title>
         <meta name="description" content={project.title} />
         <meta property="og:type" content="article" />
-        {showHero && coverImg && <link rel="preload" as="image" href={coverImg} />}
         <HreflangLinks basePath={`/web/${project.id}`} />
       </Head>
 
@@ -364,6 +363,7 @@ function WebDetailContent({ locale, project, webProjects, copyableTokens, transl
                   text={project.title}
                   wrapperClassName={styles.charWrapper}
                   innerClassName={styles.charInner}
+                  wordWrapperClassName={styles.wordWrapper}
                 />
               </h1>
               <p className={styles.heroSubtitle}>
@@ -379,6 +379,7 @@ function WebDetailContent({ locale, project, webProjects, copyableTokens, transl
                 text={project.title}
                 wrapperClassName={styles.charWrapper}
                 innerClassName={styles.charInner}
+                wordWrapperClassName={styles.wordWrapper}
               />
             </h1>
             <p className={styles.heroSubtitle}>

@@ -2,7 +2,7 @@
 
 # ARSVINE REALM
 
-ARSVINE REALM 是一个个人作品集与博客站点，基于后末日科幻 HUD 视觉语言构建。站点用于展示项目作品、经历、生活记录、博客文章、友情链接与联系方式，同时保留实时访客统计、音乐播放器、页面转场、WebGL/Three.js 氛围效果等交互能力。
+ARSVINE REALM 是一个个人作品集与博客站点，基于后末日科幻 HUD 视觉语言构建。站点用于展示项目作品、经历、生活记录、博客文章、友情链接与联系方式，同时保留音乐播放器、页面转场、WebGL/Three.js 氛围效果等交互能力。
 
 ![Preview](./docs/preview.png)
 
@@ -24,7 +24,6 @@ ARSVINE REALM 是一个个人作品集与博客站点，基于后末日科幻 HU
 - **生活详情页**：`/life/[slug]` 展示 life 数据条目的详情内容。
 - **MDX 博客**：`content/blog/*.mdx` 通过 frontmatter 生成博客列表、详情页、RSS 与 sitemap。
 - **音乐播放器**：播放列表集中在 `data/music.ts`，音频文件放在 `public/music/`，支持浏览器原生 `<audio>` 可解码的格式，例如 `.mp3`、`.m4a`、`.flac`、`.wav`、`.ogg`。
-- **实时统计**：自定义 `server.js` 提供 `/api/sse/stats` 与 `/api/stats`，统计在线人数、总访问量与累计运行时间。
 - **一言代理**：`/api/hitokoto` 服务端代理 `v1.hitokoto.cn`，进程内 60s 缓存、5s 超时；首页打字机会以「1 轮预设 + 1 句一言」交替循环。
 - **版权与许可页**：`/copyright`（双语展示源码 MIT、内容 CC BY-NC-ND 4.0）；`/license` 永久重定向到 `/copyright`。
 - **SEO / 订阅文件**：`/sitemap.xml`、`/rss.xml`、`/robots.txt` 根据站点配置动态生成。
@@ -40,7 +39,7 @@ npm run dev
 
 打开 `http://localhost:3000`。
 
-> 注意：开发和生产都使用自定义 `server.js`。不要把启动方式替换成 `next dev` 或 `next start`，否则 SSE 统计系统不会按当前设计运行。
+> 注意：开发和生产都使用自定义 `server.js`（精简的 Next.js 包装器，含 graceful shutdown）。可以替换成 `next dev` / `next start`，但当前 `npm run dev` / `npm start` 默认走 `server.js`。
 
 ## 常用命令
 
@@ -177,9 +176,11 @@ NEXT_PUBLIC_SITE_URL=https://你的域名
 
 博客 frontmatter **不需要**手动写 `readingTime`。[lib/blog.ts](lib/blog.ts) 在构建时调用内置 `estimateReadingMinutes(content, locale)` 计算分钟数：
 
-- CJK 内容（`zh-CN` / `zh-TW` / `ja`）按汉字字符数 ÷ 400 字符/分
-- 拉丁内容（`en` / `ru` / `fr`）按单词数 ÷ 230 词/分
+- CJK 字符按 200 字符/分（CJK 200 cpm）
+- 拉丁单词按 115 词/分（Latin 115 wpm）
 - 中英混排自动加权（先剥离 fenced code / inline code / HTML/JSX 标签 / MDX `import|export` 行）
+
+> 这里取的是「慢读」口径（约常见快读速度的一半）—— 文章里多含代码 / 图 / 需要思考的段落，原本 400/230 的速度长期低估了真实读完时间，2026/06 起一律按慢读估算。
 
 UI 展示走 [lib/format-reading-time.ts](lib/format-reading-time.ts) 按当前 UI locale 渲染（"约 N 分钟" / "約 N 分鐘" / "N min read"）。`BlogPostMeta` 只保留数值字段 `readingMinutes: number`。
 
@@ -199,14 +200,33 @@ UI 展示走 [lib/format-reading-time.ts](lib/format-reading-time.ts) 按当前 
 
 ### 博客文章
 
-在 `content/blog/` 中新增 `.mdx` 文件：
+新增 `.mdx` 文件，推荐目录结构（一篇文章一个文件夹，每个 locale 一份 mdx）：
+
+```text
+content/blog/<slug>/
+├── zh-CN.mdx     # 简中（默认 fallback）
+├── zh-TW.mdx     # 繁中（可选）
+├── en.mdx        # 英文（可选）
+├── ja.mdx        # 日文（content-only，UI 仍是用户当前语言）
+├── ru.mdx
+└── fr.mdx
+```
+
+UI 三语 `zh-CN | zh-TW | en` 在 [i18n/config.ts](i18n/config.ts) 定义；当请求的 UI 语言下没有对应 mdx 时，[lib/blog.ts](lib/blog.ts) 会回落到 `zh-CN` 并把 `translationStatus` 标为 `'fallback'`，详情页顶部会出现回落提示横幅。`ja | ru | fr` 是仅文章可见的语言，详情页里通过文章语言切换器手动切换。
+
+> 历史兼容写法 `content/blog/foo.mdx` / `content/blog/foo.en.mdx` 仍然可用，不过新文章请按上面的目录结构组织。
+
+frontmatter 字段：
 
 ```mdx
 ---
 title: "文章标题"
 date: "2026-01-01"
+updated: "2026-01-05"   # 可选；RSS / sitemap 用 updated ?? date
 excerpt: "一段简短摘要"
 tags: ["tag-a", "tag-b"]
+pinned: false           # 可选；置顶到列表最前
+originLocale: zh-CN     # 可选；该 locale 文件是否为「源语言原文」
 ---
 
 正文使用 Markdown / MDX 编写。
@@ -218,6 +238,23 @@ tags: ["tag-a", "tag-b"]
 - `/blog/[slug]` 详情页
 - `/rss.xml`
 - `/sitemap.xml`
+
+#### 文中注释组件（`<Term>` / `<Explain>`）
+
+[components/mdx/MDXComponents.tsx](components/mdx/MDXComponents.tsx) 注入了两个内联注释组件：
+
+| 组件 | 渲染 | 用途 |
+|---|---|---|
+| `<Term note="...">word</Term>` | 原生 `<ruby><rt>` —— 注释**永远**显示在词上方 | 专有名词、外语术语、缩写、自造词等需要"小字注音"的场景 |
+| `<Explain note="...">phrase</Explain>` | 触发器带虚线下划线 —— 鼠标悬停 / 触屏点击展开浮层 | 句级解释，注释较长、不希望永远占视觉空间时使用 |
+
+```mdx
+他在 <Term note="高考语文国卷一">全国 I 卷</Term> 上读到这段材料。
+
+那段时间他成了 <Explain note="一种长期被自我评价过度驱动的精神状态">永远在燃烧的恒星</Explain>。
+```
+
+`<Term>` 在不支持 ruby 的浏览器和复制纯文本时退化为 `word(note)`；`<Explain>` 在移动端转为底部固定面板（避免被被下方段落遮挡），桌面端会就近浮在词的上方/下方。
 
 ### 音乐播放器
 
@@ -257,18 +294,8 @@ config/image-hosts.js
 
 > 文章 / 内容图片建议走 `next/image` + `unoptimized={true}` 直链 `cdn.arsvine.com`，绕开 Vercel Hobby 的 Image Optimization 配额（1000 张/月），同时避免被 `/_next/image` 二次抓取触发 COS 出站流量。COS 流量包不是限额器，10GB 用完会按量计费，记得到费用中心配预算告警。
 
-### 统计数据
+### 服务端接口
 
-`server.js` 会把统计数据写入项目根目录的 `.stats.json`。如果部署环境不适合向项目目录写文件，可以设置：
-
-```env
-STATS_FILE=/var/lib/portfolio/stats.json
-```
-
-相关接口：
-
-- `GET /api/stats`：返回累计运行时间与总访问量
-- `GET /api/sse/stats`：SSE 推送在线人数与总访问量
 - `GET /api/hitokoto`：服务端代理 `v1.hitokoto.cn`，返回 `{ text }`；进程内 60s 缓存，5s 超时；上游失败时返回 `502 { error: 'upstream_unavailable' }`
 
 ## 环境变量
@@ -282,7 +309,6 @@ NEXT_PUBLIC_SITE_URL=https://example.com
 # NEXT_PUBLIC_UMAMI_WEBSITE_ID=your-website-id
 # NEXT_PUBLIC_UMAMI_DOMAINS=your-domain.com,www.your-domain.com
 # NEXT_PUBLIC_MEDIA_CDN=https://cdn.arsvine.com
-# STATS_FILE=/var/lib/portfolio/stats.json
 ```
 
 说明：
@@ -292,7 +318,6 @@ NEXT_PUBLIC_SITE_URL=https://example.com
 - `NEXT_PUBLIC_UMAMI_SRC` / `NEXT_PUBLIC_UMAMI_WEBSITE_ID`：可选 Umami 统计脚本配置；仅当 `SRC` 存在时才注入 `<script>`。脚本注入位置在 `pages/_document.tsx`，固定附带 `defer` / `data-do-not-track="true"` / `data-exclude-search="true"`。
 - `NEXT_PUBLIC_UMAMI_DOMAINS`：可选，逗号分隔的域名白名单（不带协议）。设置后 Umami tracker 只在这些域名下上报，`localhost` 与 Vercel preview 自动跳过，避免污染统计。
 - `NEXT_PUBLIC_MEDIA_CDN`：可选，媒体 CDN base URL（如 `https://cdn.arsvine.com`，背后是腾讯云 COS 香港 Bucket `arsvine-cdn`）。由 `data/music.ts` 消费；未设置时音乐播放器从 `/public/music/` 读取本地文件。
-- `STATS_FILE`：服务端统计持久化文件路径；不设置则使用项目根目录 `.stats.json`。
 
 ### Umami 事件埋点（可选）
 
@@ -352,7 +377,7 @@ window.umami?.track('Open Life Item', { item: 'arknights' });
 ├── public/              # 静态资源、图片、音乐目录
 ├── styles/              # SCSS Modules 与共享 partials
 ├── types/               # TypeScript 类型定义
-└── server.js            # 自定义 Next.js + SSE server
+└── server.js            # 自定义 Next.js server（精简包装器，含 graceful shutdown）
 ```
 
 ## 技术栈
@@ -365,7 +390,7 @@ window.umami?.track('Open Life Item', { item: 'arknights' });
 - `@react-three/cannon` + `cannon-es`（Tesseract 物理模拟）
 - GSAP
 - MDX / `next-mdx-remote`
-- Node.js custom server + SSE
+- Node.js custom server（精简的 Next.js 包装器）
 - ESLint flat config + `eslint-config-next/core-web-vitals`
 
 ## 开发注意事项
@@ -406,10 +431,7 @@ pm2 start server.js --name arsvine-realm
 ```env
 NODE_ENV=production
 NEXT_PUBLIC_SITE_URL=https://你的域名
-STATS_FILE=/持久化目录/stats.json
 ```
-
-确保运行用户对 `STATS_FILE` 所在目录有写入权限。
 
 ## 许可证与来源
 

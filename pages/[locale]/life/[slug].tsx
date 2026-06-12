@@ -288,7 +288,6 @@ function LifeDetailContent({ locale, item, allItems, translationStatus, actualLo
         <title>{`${item.title.toUpperCase()} // LIFE`}</title>
         <meta name="description" content={item.title} />
         <meta property="og:type" content="article" />
-        <link rel="preload" as="image" href={coverImg} />
         <HreflangLinks basePath={`/life/${item.id}`} />
       </Head>
 
@@ -311,6 +310,7 @@ function LifeDetailContent({ locale, item, allItems, translationStatus, actualLo
                   text={item.title}
                   wrapperClassName={styles.charWrapper}
                   innerClassName={styles.charInner}
+                  wordWrapperClassName={styles.wordWrapper}
                 />
               </h1>
               <p className={styles.heroSubtitle}>

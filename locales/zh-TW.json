@@ -7,7 +7,7 @@
     "visit": "造訪",
     "sourceCode": "原始碼",
     "watch": "觀看",
-    "copied": "已複製！",
+    "copied": "已複製",
     "loading": "載入中…",
     "decoding": "正在解碼傳輸…",
     "signalFragment": "// 訊號片段",
@@ -44,15 +44,15 @@
       "pinned": "PINNED"
     },
     "life": {
-      "tabGame": "Game",
-      "tabTravel": "Travel",
-      "tabArt": "Art",
-      "tabOther": "Other",
+      "tabGame": "遊戲",
+      "tabTravel": "旅行",
+      "tabArt": "藝術",
+      "tabOther": "其他",
       "alsoPlayThese": "還有這些也玩"
     },
     "contact": {
       "links": "友鏈",
-      "copied": "已複製！",
+      "copied": "已複製",
       "rss": "RSS"
     },
     "about": {

@@ -29,7 +29,7 @@ export function AppProvider({ children }: AppProviderProps) {
   } = power;
 
   const stats = useRealtimeStats();
-  const { currentTime, runtime, currentVisitDuration, totalVisits, currentVisitors } = stats;
+  const { currentTime, runtime, currentVisitDuration } = stats;
 
   const { displayedFateText, isFateTypingActive } = useFateTypingEffect(textVisible);
   const { displayedEnvParams, isEnvParamsTyping, envData, envDataVersion } = useEnvParamsTypingEffect(textVisible);
@@ -50,7 +50,7 @@ export function AppProvider({ children }: AppProviderProps) {
     powerLevel, isInverted, isTesseractActivated, isDischarging,
     chargeBattery, handleDischargeLeverPull, handleActivateTesseract, deactivateTesseract,
     // Stats
-    currentTime, runtime, currentVisitDuration, totalVisits, currentVisitors,
+    currentTime, runtime, currentVisitDuration,
     // Typing
     displayedFateText, isFateTypingActive,
     displayedEnvParams, isEnvParamsTyping, envData, envDataVersion,
@@ -64,7 +64,7 @@ export function AppProvider({ children }: AppProviderProps) {
     columnPhase, retractColumns, expandColumns,
     powerLevel, isInverted, isTesseractActivated, isDischarging,
     chargeBattery, handleDischargeLeverPull, handleActivateTesseract, deactivateTesseract,
-    currentTime, runtime, currentVisitDuration, totalVisits, currentVisitors,
+    currentTime, runtime, currentVisitDuration,
     displayedFateText, isFateTypingActive,
     displayedEnvParams, isEnvParamsTyping, envData, envDataVersion,
     randomHudTexts, branchText1, branchText2, branchText3, branchText4,

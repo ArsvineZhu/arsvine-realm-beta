@@ -152,6 +152,14 @@ function readEntry(entry: FileEntry) {
   const rawOrigin = typeof data.originLocale === 'string' ? data.originLocale : undefined;
   const originLocale: Locale | undefined = rawOrigin && isLocale(rawOrigin) ? rawOrigin : undefined;
 
+  // updated：frontmatter 中的最后修改时间，可选；不存在则不写入 meta。
+  // 用于 RSS pubDate / sitemap lastmod，让阅读器和搜索引擎感知文章修订。
+  const rawUpdated = typeof data.updated === 'string' && data.updated.trim()
+    ? data.updated
+    : data.updated instanceof Date
+      ? data.updated.toISOString()
+      : undefined;
+
   const meta: BlogPostMeta = {
     slug: entry.slug,
     title: data.title || 'Untitled',
@@ -160,6 +168,7 @@ function readEntry(entry: FileEntry) {
     tags: data.tags || [],
     readingMinutes,
     pinned: Boolean(data.pinned),
+    ...(rawUpdated ? { updated: rawUpdated } : {}),
     ...(originLocale ? { originLocale } : {}),
   };
 

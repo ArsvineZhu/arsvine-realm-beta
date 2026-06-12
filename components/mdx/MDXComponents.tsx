@@ -1,6 +1,8 @@
 import React from 'react';
 import type { MDXComponents as MDXComponentsType } from 'mdx/types';
 import styles from '../../styles/MDXContent.module.scss';
+import Term from './Term';
+import Explain from './Explain';
 
 const MDXComponents: MDXComponentsType = {
   h1: ({ children }) => <h1 className={styles.h1}>{children}</h1>,
@@ -41,6 +43,8 @@ const MDXComponents: MDXComponentsType = {
   Ref: ({ children }: { children?: React.ReactNode }) => (
     <section className={styles.references}>{children}</section>
   ),
+  Term,
+  Explain,
 };
 
 export default MDXComponents;

@@ -187,7 +187,7 @@ const TesseractExperience = ({ chargeBattery, isActivated, isInverted, onDraggin
     if (scrollContainer) {
         scrollContainer.addEventListener('scroll', updatePosition);
     } else {
-        console.warn('[TesseractExperience] Scroll container not found, listening on window instead.');
+        // 主页（/）无 .contentWrapper 滚动容器，fallback 到 window 是预期路径
         window.addEventListener('scroll', updatePosition);
     }
 

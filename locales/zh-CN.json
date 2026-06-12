@@ -7,7 +7,7 @@
     "visit": "访问",
     "sourceCode": "源代码",
     "watch": "观看",
-    "copied": "已复制！",
+    "copied": "已复制",
     "loading": "加载中…",
     "decoding": "正在解码传输…",
     "signalFragment": "// 信号片段",
@@ -32,8 +32,8 @@
   },
   "sections": {
     "works": {
-      "tabWeb": "Web",
-      "tabGame": "Game",
+      "tabWeb": "Web 项目",
+      "tabGame": "游戏设计",
       "earlyWorks": "早期学习",
       "skillsProficiency": "技能熟练度",
       "inspectHint": "悬停查看"
@@ -44,15 +44,15 @@
       "pinned": "PINNED"
     },
     "life": {
-      "tabGame": "Game",
-      "tabTravel": "Travel",
-      "tabArt": "Art",
-      "tabOther": "Other",
+      "tabGame": "游戏",
+      "tabTravel": "旅行",
+      "tabArt": "艺术",
+      "tabOther": "其他",
       "alsoPlayThese": "还有这些也玩"
     },
     "contact": {
       "links": "友链",
-      "copied": "已复制！",
+      "copied": "已复制",
       "rss": "RSS"
     },
     "about": {

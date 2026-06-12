@@ -2266,7 +2266,6 @@
   .copyrightStamp {
     opacity: 0;
     transform: translateY(18px);
-    will-change: opacity, transform;
     transition: opacity 0.65s cubic-bezier(0.25, 0.8, 0.25, 1),
       transform 0.65s cubic-bezier(0.25, 0.8, 0.25, 1);
   }

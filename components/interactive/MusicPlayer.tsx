@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import styles from './MusicPlayer.module.scss';
 import { musicPlaylist } from '../../data/music';
 import { defaultLocale, isLocale, type Locale } from '../../i18n/config';
+import { useResponsive } from '../../hooks/useMediaQuery';
 
 // 播放器控制图标 (SVG)
 const PlayIcon = () => <svg viewBox="0 0 10 10" width="10" height="10"><polygon points="3,2 8,5 3,8" fill="currentColor" /></svg>;
@@ -44,6 +45,7 @@ const commonLabelFallbacks: Record<Locale, Record<'expandPlaylist' | 'collapsePl
 const MusicPlayer = ({ powerLevel }: { powerLevel: number }) => {
   const router = useRouter();
   const tCommon = useTranslations('common');
+  const { isMobile } = useResponsive();
   const queryLocale = router.query.locale;
   const locale: Locale = isLocale(queryLocale) ? queryLocale : defaultLocale;
   const [isOpen, setIsOpen] = useState(false); // 初始状态为收起
@@ -56,13 +58,15 @@ const MusicPlayer = ({ powerLevel }: { powerLevel: number }) => {
     setIdleNudge((n) => n + 1);
   }, []);
 
-  // 挂载后延迟弹出唱片机以暗示功能
+  // 桌面端挂载 1.5s 后弹出唱片机以暗示功能；
+  // 移动端不自动弹出 —— 屏幕空间有限，自动展开会遮挡正文，由用户主动点击把手触发。
   useEffect(() => {
+    if (isMobile) return;
     const timer = setTimeout(() => {
       setIsOpen(true);
-    }, 1500); // 在主界面显示后 1.5 秒弹出
+    }, 1500);
     return () => clearTimeout(timer);
-  }, []);
+  }, [isMobile]);
   const [currentTime, setCurrentTime] = useState(0); // 当前播放时间
   const [duration, setDuration] = useState(0); // 音频总时长
   const progressBarRef = useRef(null); // 进度条填充元素引用

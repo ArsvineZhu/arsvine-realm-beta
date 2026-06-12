@@ -6,7 +6,7 @@ export const gameData: LifeItem[] = [
     id: 'arknights',
     title: 'Arknights',
     description: 'More than a strategy tower defense game, it is a Terra shaped together by art, music, narrative, and worldbuilding. It keeps pushing me to think about ideals, reality, and creation itself.',
-    tech: ['Strategy', 'Tower Defense', 'Mobile Game'],
+    tech: ["Strategy", "Tower Defense", "Mobile", "Official"],
     link: '#',
     imageUrl: cover('arknights-cover.png'),
     articleContent: `For me, Arknights is far more than a strategy tower defense mobile game. What truly draws me in is the way it builds a complex and brutal world through a cold, restrained, and highly designed visual and narrative language: the Infected, mobile cities, Catastrophes, national conflict, corporations, and organisations. None of these elements exists just to look cool. Together they support Terra's heavy and convincing order.
