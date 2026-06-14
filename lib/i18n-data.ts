@@ -30,6 +30,9 @@ import * as experienceZH from '../data/experience';
 import * as friendsZH from '../data/friendLinks';
 import * as skillsZH from '../data/skills';
 import * as siteZH from '../data/site';
+import enMessages from '../locales/en.json';
+import zhCNMessages from '../locales/zh-CN.json';
+import zhTWMessages from '../locales/zh-TW.json';
 
 // 翻译版可选 import。新增 locale 时复制下面两行模式。
 // (条件导入靠 try/catch + require 在 Node 端实现；webpack 静态分析下
@@ -199,6 +202,10 @@ export function loadServices(_locale: Locale): { heading: string; items: Service
 
 /** 加载 locale 对应的 messages（locales/<locale>.json） */
 export async function loadMessages(locale: Locale): Promise<Record<string, unknown>> {
-  const messages = await import(`../locales/${locale}.json`);
-  return messages.default;
+  const messageMap: Record<Locale, Record<string, unknown>> = {
+    'zh-CN': zhCNMessages as Record<string, unknown>,
+    'zh-TW': zhTWMessages as Record<string, unknown>,
+    en: enMessages as Record<string, unknown>,
+  };
+  return messageMap[locale] ?? messageMap[defaultLocale];
 }

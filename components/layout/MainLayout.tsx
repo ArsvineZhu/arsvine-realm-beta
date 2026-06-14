@@ -59,7 +59,7 @@ export default function MainLayout({ children }) {
   const { navigateTo, handleBack, isDetailOpen } = useTransition();
   const { isMobile, isDesktop } = useResponsive();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [routeLoadingKind, setRouteLoadingKind] = useState<null | 'tweets'>(null);
+  const [routeLoadingKind, setRouteLoadingKind] = useState<null | 'tweets' | 'blog'>(null);
   const app = useApp();
   const {
     mainVisible, isInverted, isTesseractActivated, animationsComplete,
@@ -229,7 +229,19 @@ export default function MainLayout({ children }) {
     const handleRouteChangeStart = (url: string) => {
       const path = url.split('?')[0]?.split('#')[0] ?? url;
       const isTweetsTarget = /^\/[A-Za-z-]+\/tweets\/?$/.test(path);
-      setRouteLoadingKind(isTweetsTarget ? 'tweets' : null);
+      const isBlogTarget = /^\/[A-Za-z-]+\/blog\/[^/]+\/?$/.test(path);
+
+      if (isTweetsTarget) {
+        setRouteLoadingKind('tweets');
+        return;
+      }
+
+      if (isBlogTarget) {
+        setRouteLoadingKind('blog');
+        return;
+      }
+
+      setRouteLoadingKind(null);
     };
 
     const clearRouteLoading = () => {
@@ -246,6 +258,10 @@ export default function MainLayout({ children }) {
       router.events.off('routeChangeError', clearRouteLoading);
     };
   }, [router.events]);
+
+  const routeLoadingText = routeLoadingKind === 'tweets'
+    ? tTweets('loading')
+    : tCommon('decoding');
 
   return (
     <div className={`${styles.container} ${isInverted ? styles.inverted : ''}`}>
@@ -326,11 +342,13 @@ export default function MainLayout({ children }) {
         {children}
       </div>
 
-      {mainVisible && routeLoadingKind === 'tweets' ? (
+      {mainVisible && routeLoadingKind ? (
         <div className={styles.routeLoadingOverlay} aria-live="polite" aria-atomic="true">
           <div className={styles.routeLoadingCard}>
             <span className={styles.routeLoadingSignal}>{tCommon('signalFragment')}</span>
-            <span className={styles.routeLoadingText}>{tTweets('loading')}</span>
+            <span className={styles.routeLoadingText}>
+              {routeLoadingText}
+            </span>
           </div>
         </div>
       ) : null}

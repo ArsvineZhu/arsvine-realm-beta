@@ -13,6 +13,53 @@ $c-dim: rgba(200, 200, 200, 0.25);
   }
 }
 
+.tesseractMode {
+
+  .hLine,
+  .vLine {
+    opacity: 0;
+  }
+
+  .dot {
+
+    &::before,
+    &::after {
+      opacity: 0;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  .corner {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .cornerTl {
+    top: -50%;
+    left: -50%;
+  }
+
+  .cornerTr {
+    top: -50%;
+    left: 150%;
+  }
+
+  .cornerBl {
+    top: 150%;
+    left: -50%;
+  }
+
+  .cornerBr {
+    top: 150%;
+    left: 150%;
+  }
+
+  .xLineA,
+  .xLineB {
+    opacity: 1;
+  }
+}
+
 .hLine {
   position: absolute;
   left: 0;
@@ -23,7 +70,9 @@ $c-dim: rgba(200, 200, 200, 0.25);
   will-change: transform;
   transition: opacity 0.2s ease;
 
-  &.hidden { opacity: 0; }
+  &.hidden {
+    opacity: 0;
+  }
 }
 
 .vLine {
@@ -36,7 +85,46 @@ $c-dim: rgba(200, 200, 200, 0.25);
   will-change: transform;
   transition: opacity 0.2s ease;
 
-  &.hidden { opacity: 0; }
+  &.hidden {
+    opacity: 0;
+  }
+}
+
+.xLineA,
+.xLineB {
+  position: absolute;
+  left: -1000px;
+  top: -1000px;
+  width: 200vmax;
+  height: 1px;
+  background: $c-dim;
+  transform: translate(-50%, -50%);
+  transform-origin: center center;
+  will-change: left, top, opacity;
+  opacity: 0;
+  transition: opacity 0.22s ease, transform 0.28s ease;
+
+  &.hidden {
+    opacity: 0;
+  }
+}
+
+.xLineA {
+  transform: translate(-50%, -50%) rotate(0deg);
+}
+
+.xLineB {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.tesseractMode {
+  .xLineA {
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+
+  .xLineB {
+    transform: translate(-50%, -50%) rotate(-45deg);
+  }
 }
 
 .dot {
@@ -57,7 +145,7 @@ $c-dim: rgba(200, 200, 200, 0.25);
     height: 2px;
     transform: translate(-50%, -50%);
     background: $c;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.22s ease, transform 0.28s ease;
   }
 
   &::after {
@@ -69,26 +157,81 @@ $c-dim: rgba(200, 200, 200, 0.25);
     height: 24px;
     transform: translate(-50%, -50%);
     background: $c;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.22s ease, transform 0.28s ease;
   }
 
-  &.hidden { opacity: 0; }
+  &.hidden {
+    opacity: 0;
+  }
 
   &.hovering {
-    background:
-      /* ■ TL */
-      linear-gradient(#{$c}, #{$c}) 0 0 #{'/'} 5px 5px no-repeat,
-      /* ■ TR */
-      linear-gradient(#{$c}, #{$c}) 100% 0 #{'/'} 5px 5px no-repeat,
-      /* ■ BL */
-      linear-gradient(#{$c}, #{$c}) 0 100% #{'/'} 5px 5px no-repeat,
-      /* ■ BR */
-      linear-gradient(#{$c}, #{$c}) 100% 100% #{'/'} 5px 5px no-repeat;
 
     &::before,
     &::after {
       opacity: 0;
+      transform: translate(-50%, -50%);
     }
+  }
+}
+
+.corner {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: $c;
+  opacity: 0;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0.4);
+  transition:
+    top 0.28s ease,
+    left 0.28s ease,
+    opacity 0.2s ease,
+    transform 0.28s ease;
+}
+
+.dot.hovering .corner {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.cornerTl {
+  top: 50%;
+  left: 50%;
+
+  .dot.hovering & {
+    top: 0;
+    left: 0;
+  }
+}
+
+.cornerTr {
+  top: 50%;
+  left: 50%;
+
+  .dot.hovering & {
+    top: 0;
+    left: 100%;
+  }
+}
+
+.cornerBl {
+  top: 50%;
+  left: 50%;
+
+  .dot.hovering & {
+    top: 100%;
+    left: 0;
+  }
+}
+
+.cornerBr {
+  top: 50%;
+  left: 50%;
+
+  .dot.hovering & {
+    top: 100%;
+    left: 100%;
   }
 }
 

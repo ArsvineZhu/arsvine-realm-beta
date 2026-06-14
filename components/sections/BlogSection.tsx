@@ -10,7 +10,7 @@ interface BlogSectionProps {
   blogSectionRef: RefObject<HTMLDivElement>;
   locale: Locale;
   posts: BlogPostMeta[];
-  handleBlogItemClick: (slug: string) => void;
+  handleBlogItemClick: (post: BlogPostMeta) => void;
 }
 
 export default function BlogSection({
@@ -32,8 +32,8 @@ export default function BlogSection({
             role="link"
             tabIndex={0}
             data-cursor-no-magnetic
-            onClick={() => handleBlogItemClick(post.slug)}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleBlogItemClick(post.slug); }}
+            onClick={() => handleBlogItemClick(post)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleBlogItemClick(post); }}
           >
             <div className={cardStyles.cardInner}>
               <span className={cardStyles.cardIndex}>
@@ -44,6 +44,11 @@ export default function BlogSection({
                   <h4 className={cardStyles.cardTitle}>
                     {post.title}{post.pinned && (
                       <span className={cardStyles.cardPinnedBadge} aria-label={t('pinned')}>{t('pinned')}</span>
+                    )}
+                    {post.access.mode === 'totp' && (
+                      <span className={cardStyles.cardPinnedBadge} aria-label={t('protected')}>
+                        {t('protected')}
+                      </span>
                     )}
                   </h4>
                   {post.date && <span className={cardStyles.cardDate}>{post.date}</span>}

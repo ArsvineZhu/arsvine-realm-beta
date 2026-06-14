@@ -113,6 +113,8 @@ export function TransitionProvider({ children, pageWrapperRef }: TransitionProvi
     const currentlyHome = router.pathname === '/[locale]';
     // 目标是 home 的判定：URL 形如 /<locale> 或 /<locale>/
     const goingHome = /^\/[A-Za-z-]+\/?$/.test(url);
+    // 目标是博客详情页：URL 形如 /<locale>/blog/<slug>
+    const goingBlogDetail = /^\/[A-Za-z-]+\/blog\/[^/]+/.test(url);
 
     const pushThen = (target: string, cb: () => void, pushOpts?: any) => {
       const onComplete = () => {
@@ -202,6 +204,23 @@ export function TransitionProvider({ children, pageWrapperRef }: TransitionProvi
           });
         }).catch(() => {});
       }
+    } else if (goingBlogDetail) {
+      // Blog detail: push immediately so the URL changes first, then fade once the target is ready.
+      wrapper.style.transition = 'opacity 0.3s ease-out';
+      wrapper.style.opacity = '0';
+      pushThen(url, () => {
+        wrapper.style.transition = 'opacity 0.4s ease-in';
+        wrapper.style.opacity = '1';
+        const onFadeIn = () => {
+          wrapper.removeEventListener('transitionend', onFadeIn);
+          wrapper.style.transition = '';
+          wrapper.style.opacity = '';
+          isTransitioning.current = false;
+          processQueue();
+        };
+        wrapper.addEventListener('transitionend', onFadeIn, { once: true });
+        setTimeout(onFadeIn, 500);
+      }, options);
     } else {
       // Other: WAAPI slide out → push → WAAPI slide in
       const outAnim = wrapper.animate(SLIDE_OUT_KF, SLIDE_OUT_OPTS);

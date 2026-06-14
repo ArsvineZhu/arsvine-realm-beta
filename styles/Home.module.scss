@@ -24,9 +24,11 @@
   
   // 手动模拟反转核心颜色
   --ark-dark-blue: #f0f0f0; // 浅灰色背景
+  --ark-dark-blue-rgb: 240, 240, 240;
   --ark-text: #222222;     // 深灰色文字
   --ark-border: rgba(0, 0, 0, 0.3); // 深色透明边框
   --ark-border-rgb: 0, 0, 0;
+  --ark-secondary-rgb: 190, 190, 190;
   --ark-text-secondary: #555555; // 中深灰次要文字
   
   // 特定元素样式覆盖
@@ -129,6 +131,39 @@
   }
   
 
+}
+
+:global(html[data-theme-mode='inverted']) .container {
+  --ark-primary: #E08FFF;
+  --ark-primary-rgb: 224, 143, 255;
+  --ark-highlight-green: #E08FFF;
+  --ark-highlight-green-rgb: 224, 143, 255;
+  --ark-dark-blue: #f0f0f0;
+  --ark-dark-blue-rgb: 240, 240, 240;
+  --ark-text: #222222;
+  --ark-border: rgba(0, 0, 0, 0.3);
+  --ark-border-rgb: 0, 0, 0;
+  --ark-secondary-rgb: 190, 190, 190;
+  --ark-text-secondary: #555555;
+  background-color: var(--ark-dark-blue);
+  color: var(--ark-text);
+}
+
+:global(html[data-theme-mode='inverted']) .container .glowEffect {
+  display: none;
+}
+
+:global(html[data-theme-mode='inverted']) .container .gridBackground {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.08) 1px, transparent 1px);
+}
+
+:global(html[data-theme-mode='inverted']) .container .gridBackground::after {
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(0, 0, 0, 0.03) 20px, rgba(0, 0, 0, 0.03) 21px),
+    repeating-linear-gradient(60deg, transparent, transparent 20px, rgba(0, 0, 0, 0.03) 20px, rgba(0, 0, 0, 0.03) 21px),
+    repeating-linear-gradient(120deg, transparent, transparent 20px, rgba(0, 0, 0, 0.03) 20px, rgba(0, 0, 0, 0.03) 21px);
 }
 
 .main {

@@ -104,6 +104,8 @@ export interface BlogPostMeta {
   /** 内容原文所用 locale；缺省视为 defaultLocale（zh-CN）。
    *  从 MDX frontmatter 的 `originLocale` 字段读取（如未声明就用默认）。 */
   originLocale?: Locale;
+  /** 文章访问模式。public 直接可读；totp 需访问验证。 */
+  access: ContentPostAccess;
 }
 
 export interface FriendLink {
@@ -207,6 +209,13 @@ export interface SitePages {
   };
   /** /copyright 页 title / description */
   copyright: { title: string; description: string };
+}
+
+export type ContentAccessMode = 'public' | 'totp';
+
+export interface ContentPostAccess {
+  mode: ContentAccessMode;
+  group?: string;
 }
 
 // ============================================================

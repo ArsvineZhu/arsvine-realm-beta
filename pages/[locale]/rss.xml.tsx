@@ -1,5 +1,5 @@
 import type { GetServerSideProps } from 'next';
-import { getAllPostsForLocale, getPostBySlugAndLocale } from '../../lib/blog';
+import { getPostBySlugAndLocale, getPublicPostsForLocale } from '../../lib/blog';
 import { getSiteUrl } from '../../data/site';
 import { locales, rssLanguageMap, isLocale, type Locale } from '../../i18n/config';
 import { loadMessages } from '../../lib/i18n-data';
@@ -118,18 +118,18 @@ export const getServerSideProps: GetServerSideProps = async ({ res, params }) =>
 
   // 按 updated ?? date 排序，新文章在前；与之前按 date 排序的行为基本一致，
   // 只有修订过的旧文会上浮 —— 这是预期效果。
-  const posts = [...getAllPostsForLocale(locale)].sort((a, b) => {
+  const posts = [...await getPublicPostsForLocale(locale)].sort((a, b) => {
     const ta = (getPostLastModified(a)?.getTime() ?? 0);
     const tb = (getPostLastModified(b)?.getTime() ?? 0);
     return tb - ta;
   });
 
-  const items: RssItemInput[] = posts.map((meta) => {
+  const items: RssItemInput[] = await Promise.all(posts.map(async (meta) => {
     // excerpt 缺失才读正文做兜底，避免对每篇文章都重读一次 MDX。
     let description = meta.excerpt;
     if (!description) {
       try {
-        const { content } = getPostBySlugAndLocale(meta.slug, locale);
+        const { content } = await getPostBySlugAndLocale(meta.slug, locale);
         description = buildFallbackExcerpt(content);
       } catch {
         description = '';
@@ -140,7 +140,7 @@ export const getServerSideProps: GetServerSideProps = async ({ res, params }) =>
       description,
       lastModified: getPostLastModified(meta),
     };
-  });
+  }));
 
   const siteMessages = (messages.pages as Record<string, { title?: string; rssDescription?: string }>)?.site ?? {};
   const xml = generateRssXml(

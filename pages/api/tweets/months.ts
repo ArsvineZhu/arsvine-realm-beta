@@ -24,8 +24,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       generatedAt: new Date().toISOString(),
     });
   } catch (error) {
+    console.error('[api/tweets/months] source unavailable:', error);
     return res.status(500).json({
-      error: error instanceof Error ? error.message : 'internal_server_error',
+      error: 'tweets_source_unavailable',
     });
   }
 }

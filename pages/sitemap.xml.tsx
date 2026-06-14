@@ -1,5 +1,5 @@
 import type { GetServerSideProps } from 'next';
-import { getAllPostsForLocale } from '../lib/blog';
+import { getPublicPostsForLocale } from '../lib/blog';
 import { getSiteUrl } from '../data/site';
 import { loadProjects, loadLife } from '../lib/i18n-data';
 import { locales, defaultLocale } from '../i18n/config';
@@ -30,7 +30,7 @@ ${buildAlternates(path)}
   </url>`;
 }
 
-function generateSitemap(): string {
+async function generateSitemap(): Promise<string> {
   const entries: string[] = [];
 
   // 静态路径 × 三 locale
@@ -58,9 +58,11 @@ function generateSitemap(): string {
 
   // 博客文章
   for (const loc of locales) {
-    const posts = getAllPostsForLocale(loc);
+    const posts = await getPublicPostsForLocale(loc);
     for (const post of posts) {
-      const lastmod = post.date ? new Date(post.date).toISOString().split('T')[0] : undefined;
+      const lastmod = (post.updated || post.date)
+        ? new Date(post.updated || post.date).toISOString().split('T')[0]
+        : undefined;
       entries.push(urlEntry(loc, `/blog/${post.slug}`, '0.7', 'monthly', lastmod));
     }
   }
@@ -88,7 +90,7 @@ ${entries.join('\n')}
 }
 
 export const getServerSideProps: GetServerSideProps = async ({ res }) => {
-  const xml = generateSitemap();
+  const xml = await generateSitemap();
 
   res.setHeader('Content-Type', 'application/xml; charset=utf-8');
   res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=86400');

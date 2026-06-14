@@ -7,13 +7,44 @@ import type { PowerSystemState } from '../types';
 const CHARGE_STEP = 12;
 const DISCHARGE_STEP = 1;
 const DISCHARGE_INTERVAL_MS = 50;
+const POWER_SYSTEM_STORAGE_KEY = 'arsvine:power-system';
+const THEME_MODE_STORAGE_KEY = 'arsvine:theme-mode';
+
+function readPersistedPowerState() {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    const raw = window.sessionStorage.getItem(POWER_SYSTEM_STORAGE_KEY)
+      ?? window.localStorage.getItem(POWER_SYSTEM_STORAGE_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    if (
+      typeof parsed?.powerLevel !== 'number' ||
+      typeof parsed?.isTesseractActivated !== 'boolean' ||
+      typeof parsed?.isDischarging !== 'boolean'
+    ) {
+      return null;
+    }
+
+    return {
+      powerLevel: Math.max(0, Math.min(100, parsed.powerLevel)),
+      isTesseractActivated: parsed.isTesseractActivated,
+      isDischarging: parsed.isDischarging,
+    };
+  } catch {
+    return null;
+  }
+}
 
 export default function usePowerSystem(mainVisible: boolean): PowerSystemState {
-  const [powerLevel, setPowerLevel] = useState(67);
-  const [isTesseractActivated, setIsTesseractActivated] = useState(false);
-  const [isDischarging, setIsDischarging] = useState(false);
+  const [powerLevel, setPowerLevel] = useState(() => readPersistedPowerState()?.powerLevel ?? 67);
+  const [isTesseractActivated, setIsTesseractActivated] = useState(() => readPersistedPowerState()?.isTesseractActivated ?? false);
+  const [isDischarging, setIsDischarging] = useState(() => readPersistedPowerState()?.isDischarging ?? false);
   const dischargeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const isDischargingRef = useRef(false);
+  const isDischargingRef = useRef(readPersistedPowerState()?.isDischarging ?? false);
 
   // Inverted mode is purely derived from power state — no separate state needed.
   const isInverted = powerLevel === 100 && !isDischarging;
@@ -21,6 +52,26 @@ export default function usePowerSystem(mainVisible: boolean): PowerSystemState {
   useEffect(() => {
     isDischargingRef.current = isDischarging;
   }, [isDischarging]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const serialized = JSON.stringify({
+      powerLevel,
+      isTesseractActivated,
+      isDischarging,
+    });
+
+    window.sessionStorage.setItem(POWER_SYSTEM_STORAGE_KEY, serialized);
+    window.localStorage.setItem(POWER_SYSTEM_STORAGE_KEY, serialized);
+
+    const themeMode = isInverted ? 'inverted' : 'default';
+    window.sessionStorage.setItem(THEME_MODE_STORAGE_KEY, themeMode);
+    window.localStorage.setItem(THEME_MODE_STORAGE_KEY, themeMode);
+    document.documentElement.setAttribute('data-theme-mode', themeMode);
+  }, [powerLevel, isTesseractActivated, isDischarging, isInverted]);
 
   const stopDischarge = useCallback(() => {
     if (dischargeIntervalRef.current) {

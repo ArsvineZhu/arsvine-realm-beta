@@ -27,9 +27,22 @@ const isCursorInteractive = (el: HTMLElement | null) => {
   return true;
 };
 
+const getInteractiveCursorTarget = (target: EventTarget | null): HTMLElement | null => {
+  if (!(target instanceof HTMLElement)) return null;
+  const candidate = target.closest(SELECTOR) as HTMLElement | null;
+  if (!candidate) return null;
+  if (candidate.closest('[data-cursor-no-magnetic]') && !candidate.hasAttribute('data-cursor-magnetic')) {
+    return null;
+  }
+  return isCursorInteractive(candidate) ? candidate : null;
+};
+
 const CustomCursor = () => {
+  const rootRef = useRef<HTMLDivElement>(null);
   const hLineRef = useRef<HTMLDivElement>(null);
   const vLineRef = useRef<HTMLDivElement>(null);
+  const xLineARef = useRef<HTMLDivElement>(null);
+  const xLineBRef = useRef<HTMLDivElement>(null);
   const dotRef = useRef<HTMLDivElement>(null);
   const labelRef = useRef<HTMLDivElement>(null);
 
@@ -43,17 +56,78 @@ const CustomCursor = () => {
   const hoverEl = useRef<HTMLElement | null>(null);
 
   const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+  const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
   const applyPosition = useCallback((x: number, y: number) => {
     const hLine = hLineRef.current;
     const vLine = vLineRef.current;
+    const xLineA = xLineARef.current;
+    const xLineB = xLineBRef.current;
     const dot = dotRef.current;
-    if (!hLine || !vLine || !dot) return;
+    if (!hLine || !vLine || !xLineA || !xLineB || !dot) return;
 
     hLine.style.transform = `translateY(${y}px)`;
     vLine.style.transform = `translateX(${x}px)`;
+    xLineA.style.left = `${x}px`;
+    xLineA.style.top = `${y}px`;
+    xLineB.style.left = `${x}px`;
+    xLineB.style.top = `${y}px`;
     dot.style.transform = `translate(${x - dotSize.current.w / 2}px, ${y - dotSize.current.h / 2}px)`;
   }, []);
+
+  const applyLineMask = useCallback((target: { x: number; y: number; w: number; h: number } | null) => {
+    const hLine = hLineRef.current;
+    const vLine = vLineRef.current;
+    if (!hLine || !vLine) return;
+
+    if (!target) {
+      hLine.style.maskImage = '';
+      hLine.style.webkitMaskImage = '';
+      vLine.style.maskImage = '';
+      vLine.style.webkitMaskImage = '';
+      return;
+    }
+
+    const left = clamp(target.x - target.w / 2, 0, window.innerWidth);
+    const right = clamp(target.x + target.w / 2, 0, window.innerWidth);
+    const top = clamp(target.y - target.h / 2, 0, window.innerHeight);
+    const bottom = clamp(target.y + target.h / 2, 0, window.innerHeight);
+
+    const horizontalMask = `linear-gradient(to right, #000 0, #000 ${left}px, transparent ${left}px, transparent ${right}px, #000 ${right}px, #000 100%)`;
+    const verticalMask = `linear-gradient(to bottom, #000 0, #000 ${top}px, transparent ${top}px, transparent ${bottom}px, #000 ${bottom}px, #000 100%)`;
+
+    hLine.style.maskImage = horizontalMask;
+    hLine.style.webkitMaskImage = horizontalMask;
+    vLine.style.maskImage = verticalMask;
+    vLine.style.webkitMaskImage = verticalMask;
+  }, []);
+
+  const syncHoverTarget = useCallback(() => {
+    const el = hoverEl.current;
+    if (!el || !isCursorInteractive(el)) return null;
+
+    const rect = el.getBoundingClientRect();
+    const target = {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+      w: rect.width + 12,
+      h: rect.height + 12,
+    };
+
+    snapTarget.current = target;
+    dotSize.current = { w: target.w, h: target.h };
+
+    const dot = dotRef.current;
+    if (dot) {
+      gsap.killTweensOf(dot);
+      dot.style.width = `${target.w}px`;
+      dot.style.height = `${target.h}px`;
+    }
+
+    applyPosition(rendered.current.x, rendered.current.y);
+    applyLineMask(target);
+    return rect;
+  }, [applyLineMask, applyPosition]);
 
   const resetHoverState = useCallback(() => {
     hoverEl.current = null;
@@ -65,7 +139,8 @@ const CustomCursor = () => {
     const dot = dotRef.current;
     if (dot) {
       gsap.killTweensOf(dot);
-      gsap.to(dot, { width: 24, height: 24, duration: 0.25, ease: 'power2.out' });
+      dot.style.width = '24px';
+      dot.style.height = '24px';
       dot.classList.remove(styles.hovering);
     }
 
@@ -87,6 +162,14 @@ const CustomCursor = () => {
         resetHoverState();
       }
 
+      let hoverRect: DOMRect | null = null;
+      if (isHovering.current) {
+        hoverRect = syncHoverTarget();
+        if (!hoverRect) {
+          resetHoverState();
+        }
+      }
+
       const target = snapTarget.current;
       let tx = mouse.current.x;
       let ty = mouse.current.y;
@@ -102,14 +185,13 @@ const CustomCursor = () => {
 
       applyPosition(rendered.current.x, rendered.current.y);
 
-      if (isHovering.current && hoverEl.current) {
-        const rect = hoverEl.current.getBoundingClientRect();
+      if (isHovering.current && hoverRect) {
         const mx = mouse.current.x;
         const my = mouse.current.y;
         const margin = 60;
 
-        if (mx < rect.left - margin || mx > rect.right + margin ||
-            my < rect.top - margin || my > rect.bottom + margin) {
+        if (mx < hoverRect.left - margin || mx > hoverRect.right + margin ||
+            my < hoverRect.top - margin || my > hoverRect.bottom + margin) {
           resetHoverState();
         }
       }
@@ -119,7 +201,7 @@ const CustomCursor = () => {
 
     rafId.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafId.current);
-  }, [applyPosition, resetHoverState]);
+  }, [applyPosition, resetHoverState, syncHoverTarget]);
 
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
@@ -176,16 +258,7 @@ const CustomCursor = () => {
 
       const label = el.getAttribute('data-cursor-label') || el.getAttribute('aria-label') || '';
       currentLabel.current = label;
-
-      const newW = rect.width + 12;
-      const newH = rect.height + 12;
-      dotSize.current = { w: newW, h: newH };
-
-      const dot = dotRef.current;
-      if (dot) {
-        gsap.killTweensOf(dot);
-        gsap.to(dot, { width: newW, height: newH, duration: 0.3, ease: 'power3.out' });
-      }
+      syncHoverTarget();
 
       const labelEl = labelRef.current;
       if (labelEl) {
@@ -199,6 +272,8 @@ const CustomCursor = () => {
     };
 
     const handleLeave = (e: Event) => {
+      const nextTarget = getInteractiveCursorTarget((e as MouseEvent).relatedTarget);
+      if (nextTarget && nextTarget !== hoverEl.current) return;
       if (hoverEl.current && hoverEl.current !== e.currentTarget) return;
       resetHoverState();
     };
@@ -243,7 +318,7 @@ const CustomCursor = () => {
       observer.disconnect();
       unbind();
     };
-  }, [resetHoverState]);
+  }, [resetHoverState, syncHoverTarget]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -266,14 +341,30 @@ const CustomCursor = () => {
   }, [resetHoverState]);
 
   useEffect(() => {
+    const handleTesseractCursorHover = (event: Event) => {
+      const active = Boolean((event as CustomEvent<{ active?: boolean }>).detail?.active);
+      rootRef.current?.classList.toggle(styles.tesseractMode, active);
+    };
+
+    window.addEventListener('arsvine:tesseract-cursor-hover', handleTesseractCursorHover as EventListener);
+    return () => {
+      window.removeEventListener('arsvine:tesseract-cursor-hover', handleTesseractCursorHover as EventListener);
+    };
+  }, []);
+
+  useEffect(() => {
     const handleLeave = () => {
       hLineRef.current?.classList.add(styles.hidden);
       vLineRef.current?.classList.add(styles.hidden);
+      xLineARef.current?.classList.add(styles.hidden);
+      xLineBRef.current?.classList.add(styles.hidden);
       dotRef.current?.classList.add(styles.hidden);
     };
     const handleEnter = () => {
       hLineRef.current?.classList.remove(styles.hidden);
       vLineRef.current?.classList.remove(styles.hidden);
+      xLineARef.current?.classList.remove(styles.hidden);
+      xLineBRef.current?.classList.remove(styles.hidden);
       dotRef.current?.classList.remove(styles.hidden);
     };
 
@@ -286,10 +377,16 @@ const CustomCursor = () => {
   }, []);
 
   return (
-    <div className={styles.cursorRoot}>
+    <div ref={rootRef} className={styles.cursorRoot}>
       <div ref={hLineRef} className={styles.hLine} />
       <div ref={vLineRef} className={styles.vLine} />
+      <div ref={xLineARef} className={styles.xLineA} />
+      <div ref={xLineBRef} className={styles.xLineB} />
       <div ref={dotRef} className={styles.dot}>
+        <span className={`${styles.corner} ${styles.cornerTl}`} />
+        <span className={`${styles.corner} ${styles.cornerTr}`} />
+        <span className={`${styles.corner} ${styles.cornerBl}`} />
+        <span className={`${styles.corner} ${styles.cornerBr}`} />
         <div ref={labelRef} className={styles.label} />
       </div>
     </div>

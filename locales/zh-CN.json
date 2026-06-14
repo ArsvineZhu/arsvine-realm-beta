@@ -41,7 +41,8 @@
     "experience": {},
     "blog": {
       "heading": "Blog",
-      "pinned": "PINNED"
+      "pinned": "PINNED",
+      "protected": "受保护"
     },
     "tweets": {},
     "life": {
@@ -69,6 +70,7 @@
     "works": "作品集",
     "experience": "经历",
     "blog": "博客",
+    "posts": "文章",
     "tweets": "推文",
     "life": "生活",
     "contact": "联系",
@@ -114,6 +116,8 @@
       "description": "短句、碎片、近况与开发中的信号记录。",
       "heading": "Tweets",
       "empty": "暂无推文信号。",
+      "unavailable": "推文信号源暂时不可用。",
+      "unavailableHint": "开发环境提示：{reason}",
       "loading": "正在解码推文信号…",
       "loadMore": "加载更多月份",
       "generatedAt": "缓存生成于：{value}",
@@ -130,6 +134,27 @@
         "ja": "日本語",
         "other": "其他语言"
       }
+    },
+    "posts": {
+      "title": "POSTS",
+      "description": "来自私有内容仓库、按运行时读取的文章归档。",
+      "heading": "Posts",
+      "empty": "暂无文章信号。",
+      "loading": "正在解码文章归档…",
+      "publicBadge": "公开",
+      "protectedBadge": "受保护",
+      "protectedHint": "需要验证",
+      "signal": "// 档案信号"
+    },
+    "access": {
+      "title": "ACCESS",
+      "description": "输入动态验证码以继续访问受保护内容。",
+      "heading": "验证访问",
+      "tokenLabel": "验证码",
+      "hint": "请输入当前 6 位验证码。输入第 6 位后将自动验证。",
+      "submit": "验证",
+      "verifying": "验证中…",
+      "invalidToken": "验证码无效或已过期。"
     },
     "copyright": {
       "title": "COPYRIGHT",

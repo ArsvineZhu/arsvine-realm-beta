@@ -41,7 +41,8 @@
     "experience": {},
     "blog": {
       "heading": "Blog",
-      "pinned": "PINNED"
+      "pinned": "PINNED",
+      "protected": "PROTECTED"
     },
     "tweets": {},
     "life": {
@@ -69,6 +70,7 @@
     "works": "Portfolio",
     "experience": "Experience",
     "blog": "Blog",
+    "posts": "Posts",
     "tweets": "Tweets",
     "life": "Life",
     "contact": "Contact",
@@ -114,6 +116,8 @@
       "description": "Short notes, fragments, updates, and signals from ongoing work.",
       "heading": "Tweets",
       "empty": "No tweets yet.",
+      "unavailable": "The tweet source is temporarily unavailable.",
+      "unavailableHint": "Development hint: {reason}",
       "loading": "Decoding tweet signal...",
       "loadMore": "Load More Months",
       "generatedAt": "Cached at: {value}",
@@ -130,6 +134,27 @@
         "ja": "Japanese",
         "other": "another language"
       }
+    },
+    "posts": {
+      "title": "POSTS",
+      "description": "Runtime-loaded writing archive from the private content repository.",
+      "heading": "Posts",
+      "empty": "No posts yet.",
+      "loading": "Decoding post archive...",
+      "publicBadge": "PUBLIC",
+      "protectedBadge": "PROTECTED",
+      "protectedHint": "Verification required",
+      "signal": "// ARCHIVE_SIGNAL"
+    },
+    "access": {
+      "title": "ACCESS",
+      "description": "Enter the time-based verification code to continue to protected content.",
+      "heading": "Verification Required",
+      "tokenLabel": "Verification Code",
+      "hint": "Enter the current 6-digit verification code. Verification starts automatically after the sixth digit.",
+      "submit": "Verify",
+      "verifying": "Verifying...",
+      "invalidToken": "The code is invalid or expired."
     },
     "copyright": {
       "title": "COPYRIGHT",

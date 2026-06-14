@@ -44,6 +44,11 @@ const Tesseract = forwardRef(({
   const planeNormal = useRef(new THREE.Vector3()); // 拖拽平面的法线
   const mouseNDC = useMemo(() => new THREE.Vector2(), []); // 存储鼠标 NDC 坐标
 
+  const emitCursorHover = (active: boolean) => {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('arsvine:tesseract-cursor-hover', { detail: { active } }));
+  };
+
   // Tesseract 尺寸定义
   const outerSize = 0.4; // 外层立方体边长
   const innerSize = 0.2; // 内层立方体边长
@@ -130,6 +135,12 @@ const Tesseract = forwardRef(({
     getPosition: () => groupRef.current?.position, // 获取当前位置
     meshRef: groupRef // 暴露 Group 引用 (用于连接线等)
   }));
+
+  useEffect(() => {
+    return () => {
+      emitCursorHover(false);
+    };
+  }, []);
 
   // 每帧更新逻辑
   useFrame(({ camera }) => {
@@ -225,8 +236,14 @@ const Tesseract = forwardRef(({
         onPointerDown={handlePointerDown} // 绑定鼠标按下事件
         onPointerUp={handlePointerUp}     // 绑定鼠标松开事件
         onPointerMove={handlePointerMove}   // 绑定鼠标移动事件
-        onPointerOver={() => setHovered(true)} // 鼠标悬停
-        onPointerOut={() => setHovered(false)} // 鼠标移出
+        onPointerOver={() => {
+          setHovered(true);
+          emitCursorHover(true);
+        }} // 鼠标悬停
+        onPointerOut={() => {
+          setHovered(false);
+          emitCursorHover(false);
+        }} // 鼠标移出
       >
         <boxGeometry /> {/* 使用简单的立方体作为形状 */} 
         <meshBasicMaterial transparent opacity={0} /> {/* 完全透明 */} 

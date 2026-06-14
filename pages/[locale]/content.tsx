@@ -121,7 +121,18 @@ export default function ContentPage({
     allLifeItems.forEach(item => { router.prefetch(`/${locale}/life/${item.id}`); });
     gameProjects.forEach(p => { router.prefetch(`/${locale}/game/${p.id}`); });
     webProjects.forEach(p => { router.prefetch(`/${locale}/web/${p.id}`); });
-    blogPosts.forEach(p => { router.prefetch(`/${locale}/blog/${p.slug}`); });
+    blogPosts.forEach((post) => {
+      if (post.access.mode === 'public') {
+        router.prefetch(`/${locale}/blog/${post.slug}`);
+        return;
+      }
+
+      if (post.access.mode === 'totp' && post.access.group) {
+        router.prefetch(
+          `/${locale}/access/${post.access.group}?next=${encodeURIComponent(`/${locale}/blog/${post.slug}`)}`,
+        );
+      }
+    });
   }, [router, blogPosts, gameData, travelData, otherData, gameProjects, webProjects, locale]);
 
   useEffect(() => {
@@ -186,8 +197,15 @@ export default function ContentPage({
     navigateTo(`/${locale}/friends`);
   }, [navigateTo, locale]);
 
-  const handleBlogItemClick = useCallback((slug: string) => {
-    navigateTo(`/${locale}/blog/${slug}`);
+  const handleBlogItemClick = useCallback((post: BlogPostMeta) => {
+    if (post.access.mode === 'totp' && post.access.group) {
+      navigateTo(
+        `/${locale}/access/${post.access.group}?next=${encodeURIComponent(`/${locale}/blog/${post.slug}`)}`,
+      );
+      return;
+    }
+
+    navigateTo(`/${locale}/blog/${post.slug}`);
   }, [navigateTo, locale]);
 
   const handleBackFromDetail = useCallback(() => {
@@ -346,7 +364,7 @@ export const getStaticProps: GetStaticProps<ContentPageProps> = async ({ params 
   const life = loadLife(locale);
   const exp = loadExperience(locale);
   const skills = loadSkills(locale);
-  const blogPosts = getAllPostsForLocale(locale);
+  const blogPosts = await getAllPostsForLocale(locale);
 
   const pageDescription =
     (messages.pages as Record<string, { description?: string }>)?.content?.description ?? '';
@@ -368,5 +386,6 @@ export const getStaticProps: GetStaticProps<ContentPageProps> = async ({ params 
       skillCategories: skills.skillCategories,
       pageDescription,
     },
+    revalidate: 300,
   };
 };

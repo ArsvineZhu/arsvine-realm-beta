@@ -41,7 +41,8 @@
     "experience": {},
     "blog": {
       "heading": "Blog",
-      "pinned": "PINNED"
+      "pinned": "PINNED",
+      "protected": "受保護"
     },
     "tweets": {},
     "life": {
@@ -69,6 +70,7 @@
     "works": "作品集",
     "experience": "經歷",
     "blog": "部落格",
+    "posts": "文章",
     "tweets": "推文",
     "life": "生活",
     "contact": "聯絡",
@@ -114,6 +116,8 @@
       "description": "短句、碎片、近況與開發中的訊號記錄。",
       "heading": "Tweets",
       "empty": "暫無推文訊號。",
+      "unavailable": "推文訊號源暫時不可用。",
+      "unavailableHint": "開發環境提示：{reason}",
       "loading": "正在解碼推文訊號…",
       "loadMore": "載入更多月份",
       "generatedAt": "快取生成於：{value}",
@@ -130,6 +134,27 @@
         "ja": "日本語",
         "other": "其他語言"
       }
+    },
+    "posts": {
+      "title": "POSTS",
+      "description": "來自私有內容倉庫、以執行期讀取的文章歸檔。",
+      "heading": "Posts",
+      "empty": "暫無文章訊號。",
+      "loading": "正在解碼文章歸檔…",
+      "publicBadge": "公開",
+      "protectedBadge": "受保護",
+      "protectedHint": "需要驗證",
+      "signal": "// 檔案訊號"
+    },
+    "access": {
+      "title": "ACCESS",
+      "description": "輸入動態驗證碼以繼續存取受保護內容。",
+      "heading": "驗證存取",
+      "tokenLabel": "驗證碼",
+      "hint": "請輸入目前的 6 位驗證碼。輸入第 6 位後將自動驗證。",
+      "submit": "驗證",
+      "verifying": "驗證中…",
+      "invalidToken": "驗證碼無效或已過期。"
     },
     "copyright": {
       "title": "COPYRIGHT",

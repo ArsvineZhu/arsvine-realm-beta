@@ -1,0 +1,242 @@
+.page {
+  --access-primary-rgb: 200, 200, 200;
+  --access-border-rgb: 255, 255, 255;
+  --access-card-border: rgba(var(--access-border-rgb), 0.24);
+  --access-card-sheen-top: rgba(var(--access-border-rgb), 0.1);
+  --access-card-sheen-bottom: rgba(var(--access-border-rgb), 0.04);
+  --access-slot-width: clamp(32px, 3vw, 40px);
+  --access-slot-height: clamp(54px, 5vw, 64px);
+  --access-slot-gap: clamp(8px, 1vw, 12px);
+  --access-slot-border: rgba(var(--access-border-rgb), 0.42);
+  --access-slot-fill-top: rgba(var(--access-border-rgb), 0.1);
+  --access-slot-fill-bottom: rgba(var(--access-border-rgb), 0.03);
+  --access-slot-shadow: inset 0 0 0 1px rgba(var(--access-border-rgb), 0.05);
+  --access-slot-filled-border: rgba(var(--access-primary-rgb), 0.78);
+  --access-slot-filled-fill-top: rgba(var(--access-primary-rgb), 0.18);
+  --access-slot-filled-fill-bottom: rgba(var(--access-primary-rgb), 0.06);
+  --access-slot-filled-shadow:
+    inset 0 0 0 1px rgba(var(--access-primary-rgb), 0.12),
+    0 0 18px rgba(var(--access-primary-rgb), 0.12);
+  --access-slot-active-shadow:
+    inset 0 0 0 1px rgba(var(--access-primary-rgb), 0.92),
+    0 0 0 1px rgba(var(--access-primary-rgb), 0.82),
+    0 0 22px rgba(var(--access-primary-rgb), 0.18);
+  position: relative;
+  z-index: 2;
+  width: var(--content-width);
+  margin-left: var(--content-offset);
+  min-height: 100vh;
+  padding: var(--spacing-section-top) var(--spacing-section-pad) clamp(40px, 5vw, 80px) 0;
+  color: var(--ark-text);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  @media (max-width: 1023px) {
+    padding-right: var(--spacing-section-pad);
+  }
+
+  @media (max-width: 767px) {
+    padding: var(--spacing-section-top) 16px calc(56px + 32px);
+  }
+}
+
+.header {
+  width: 100%;
+  margin-bottom: 28px;
+}
+
+.heading {
+  width: 100%;
+  margin: 0 0 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(var(--ark-border-rgb), 0.45);
+  font-family: var(--font-hud);
+  font-size: clamp(1.8rem, 2.3vw + 0.9rem, 3.2rem);
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ark-primary);
+}
+
+.description {
+  max-width: 720px;
+  margin: 0;
+  color: var(--ark-text-secondary);
+  line-height: 1.7;
+  font-family: var(--font-reading);
+}
+
+.card {
+  width: min(520px, 100%);
+  padding: 24px 24px 22px;
+  border: 1px solid var(--access-card-border);
+  background:
+    linear-gradient(180deg, var(--access-card-sheen-top), var(--access-card-sheen-bottom));
+  box-shadow:
+    inset 0 0 0 1px rgba(var(--access-border-rgb), 0.06),
+    0 18px 48px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(10px);
+}
+
+.label {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--ark-text-secondary);
+  font-family: var(--font-hud);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.codeField {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  cursor: text;
+}
+
+.hiddenInput {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  z-index: 2;
+  caret-color: transparent;
+}
+
+.slotGrid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, var(--access-slot-width)));
+  gap: var(--access-slot-gap);
+
+  @media (max-width: 767px) {
+    --access-slot-width: 30px;
+    --access-slot-height: 52px;
+    --access-slot-gap: 6px;
+  }
+}
+
+.slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--access-slot-width);
+  min-width: var(--access-slot-width);
+  height: var(--access-slot-height);
+  border: 1px solid var(--access-slot-border);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, var(--access-slot-fill-top), var(--access-slot-fill-bottom));
+  box-shadow: var(--access-slot-shadow);
+  color: var(--ark-text);
+  font-family: var(--font-hud);
+  font-size: clamp(1.1rem, 0.85vw + 0.95rem, 1.35rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.slotFilled {
+  border-color: var(--access-slot-filled-border);
+  color: var(--ark-primary);
+  background:
+    linear-gradient(180deg, var(--access-slot-filled-fill-top), var(--access-slot-filled-fill-bottom));
+  box-shadow: var(--access-slot-filled-shadow);
+}
+
+.slotActive {
+  border-color: rgba(var(--access-primary-rgb), 0.92);
+  box-shadow: var(--access-slot-active-shadow);
+  transform: translateY(-1px);
+}
+
+.hint,
+.status,
+.error {
+  font-size: var(--fs-caption);
+  line-height: 1.65;
+}
+
+.hint {
+  margin: 14px 0 0;
+  color: var(--ark-text-secondary);
+  font-family: var(--font-reading);
+}
+
+.error {
+  margin: 8px 0 0;
+  color: #ef9088;
+  font-family: var(--font-hud);
+  letter-spacing: 0.08em;
+}
+
+.status {
+  min-height: 1.65em;
+  margin: 8px 0 0;
+  color: var(--ark-primary);
+  font-family: var(--font-hud);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.hiddenSubmit {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+:global(.inverted) .page {
+  --access-primary-rgb: var(--ark-primary-rgb, 224, 143, 255);
+  --access-border-rgb: 0, 0, 0;
+  --access-card-border: rgba(var(--access-border-rgb), 0.22);
+  --access-card-sheen-top: rgba(var(--access-border-rgb), 0.06);
+  --access-card-sheen-bottom: rgba(var(--access-border-rgb), 0.03);
+  --access-slot-border: rgba(var(--access-border-rgb), 0.34);
+  --access-slot-fill-top: rgba(var(--access-border-rgb), 0.04);
+  --access-slot-fill-bottom: rgba(var(--access-border-rgb), 0.015);
+  --access-slot-shadow: inset 0 0 0 1px rgba(var(--access-border-rgb), 0.05);
+  --access-slot-filled-border: rgba(var(--access-primary-rgb), 0.72);
+  --access-slot-filled-fill-top: rgba(var(--access-primary-rgb), 0.1);
+  --access-slot-filled-fill-bottom: rgba(var(--access-primary-rgb), 0.03);
+  --access-slot-filled-shadow:
+    inset 0 0 0 1px rgba(var(--access-primary-rgb), 0.1),
+    0 0 12px rgba(var(--access-primary-rgb), 0.08);
+  --access-slot-active-shadow:
+    inset 0 0 0 1px rgba(var(--access-primary-rgb), 0.8),
+    0 0 0 1px rgba(var(--access-primary-rgb), 0.7),
+    0 0 16px rgba(var(--access-primary-rgb), 0.12);
+
+  .card {
+    background:
+      linear-gradient(180deg, var(--access-card-sheen-top), var(--access-card-sheen-bottom));
+    box-shadow:
+      inset 0 0 0 1px rgba(var(--access-border-rgb), 0.04),
+      0 18px 40px rgba(0, 0, 0, 0.05);
+  }
+
+  .slot {
+    background:
+      linear-gradient(180deg, var(--access-slot-fill-top), var(--access-slot-fill-bottom));
+  }
+
+  .slotFilled {
+    background: linear-gradient(180deg, var(--access-slot-filled-fill-top), var(--access-slot-filled-fill-bottom));
+  }
+}
+
+.hiddenInput:disabled + .slotGrid .slot {
+  opacity: 0.78;
+}

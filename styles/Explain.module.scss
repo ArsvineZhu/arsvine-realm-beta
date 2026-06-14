@@ -35,9 +35,22 @@
   &:hover,
   &:focus-visible {
     text-decoration-color: rgba(230, 230, 230, 0.9);
-    color: rgba(255, 255, 255, 1);
+    color: var(--ark-text);
     background-color: rgba(230, 230, 230, 0.1);
     outline: none;
+  }
+
+  :global([class*='inverted']) & {
+    text-decoration-color: rgba(var(--ark-primary-rgb), 0.82);
+    text-decoration-thickness: 1.5px;
+    animation-name: explainRevealUnderlineInverted;
+  }
+
+  :global([class*='inverted']) &:hover,
+  :global([class*='inverted']) &:focus-visible {
+    color: var(--ark-text);
+    text-decoration-color: rgba(var(--ark-primary-rgb), 0.98);
+    background-color: rgba(var(--ark-primary-rgb), 0.1);
   }
 }
 
@@ -47,6 +60,15 @@
   }
   to {
     text-decoration-color: rgba(230, 230, 230, 0.5);
+  }
+}
+
+@keyframes explainRevealUnderlineInverted {
+  from {
+    text-decoration-color: transparent;
+  }
+  to {
+    text-decoration-color: rgba(var(--ark-primary-rgb), 0.82);
   }
 }
 
@@ -91,21 +113,10 @@
 
 // ===== Inverted mode =====
 
-:global(.inverted) {
-  .explainTrigger {
-    text-decoration-color: rgba(var(--ark-primary-rgb), 0.6);
-
-    &:hover,
-    &:focus-visible {
-      text-decoration-color: var(--ark-primary);
-    }
-  }
-
-  .explainTooltip {
-    background: rgba(245, 245, 245, 0.97);
-    color: rgba(20, 20, 20, 0.92);
-    border-color: rgba(0, 0, 0, 0.1);
-  }
+:global([class*='inverted']) .explainTooltip {
+  background: rgba(245, 245, 245, 0.97);
+  color: rgba(20, 20, 20, 0.92);
+  border-color: rgba(0, 0, 0, 0.1);
 }
 
 // ===== Mobile =====

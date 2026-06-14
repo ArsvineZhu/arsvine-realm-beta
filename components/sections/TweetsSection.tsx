@@ -19,6 +19,8 @@ interface TweetsSectionProps {
   totalMonths: number;
   monthBatchSize: number;
   generatedAt?: string;
+  sourceUnavailable?: boolean;
+  sourceError?: string | null;
 }
 
 const ALPHABETIC_CHAR_RE = /[A-Za-zЀ-ӿ]/;
@@ -97,7 +99,6 @@ function useTweetTypewriter(target: string) {
   useEffect(() => {
     if (firstRunRef.current) {
       firstRunRef.current = false;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- 首次挂载需把 SSR 文本与 prop 对齐，无动画
       setDisplayText(target);
       return undefined;
     }
@@ -263,6 +264,8 @@ export default function TweetsSection({
   totalMonths,
   monthBatchSize,
   generatedAt,
+  sourceUnavailable = false,
+  sourceError,
 }: TweetsSectionProps) {
   const t = useTranslations('pages.tweets');
   const tCommon = useTranslations('common');
@@ -324,7 +327,16 @@ export default function TweetsSection({
       </div>
 
       {loadedGroups.length === 0 ? (
-        <p className={styles.emptyState}>{t('empty')}</p>
+        sourceUnavailable ? (
+          <>
+            <p className={styles.emptyState}>{t('unavailable')}</p>
+            {process.env.NODE_ENV !== 'production' && sourceError ? (
+              <p className={styles.loadMoreError}>{t('unavailableHint', { reason: sourceError })}</p>
+            ) : null}
+          </>
+        ) : (
+          <p className={styles.emptyState}>{t('empty')}</p>
+        )
       ) : (
         <>
           <div className={styles.monthGroupList}>

@@ -110,6 +110,15 @@
   margin-bottom: 10px;
 }
 
+.headerExcerpt {
+  margin: 10px 0 0;
+  color: var(--ark-text-secondary);
+  font-family: var(--font-reading);
+  font-size: var(--fs-body);
+  line-height: 1.85;
+  max-width: 56ch;
+}
+
 .headerDate {
   font-family: 'Dosis', monospace;
   font-size: var(--fs-base);
@@ -135,6 +144,7 @@
 .articleLocaleSwitcher {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
   margin: 14px 0 6px;
 }
