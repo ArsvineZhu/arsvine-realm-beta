@@ -343,7 +343,11 @@ export default function MainLayout({ children }) {
       </div>
 
       {mainVisible && routeLoadingKind ? (
-        <div className={styles.routeLoadingOverlay} aria-live="polite" aria-atomic="true">
+        <div
+          className={`${styles.routeLoadingOverlay} ${isStandalone ? styles.routeLoadingOverlayStandalone : ''}`}
+          aria-live="polite"
+          aria-atomic="true"
+        >
           <div className={styles.routeLoadingCard}>
             <span className={styles.routeLoadingSignal}>{tCommon('signalFragment')}</span>
             <span className={styles.routeLoadingText}>

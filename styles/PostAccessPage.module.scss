@@ -41,6 +41,22 @@
   }
 }
 
+.embedded {
+  width: 100%;
+  min-height: 0;
+  margin-left: 0;
+  padding: clamp(28px, 4vw, 40px) 0 clamp(40px, 6vw, 64px);
+  display: block;
+
+  @media (max-width: 1023px) {
+    padding-right: 0;
+  }
+
+  @media (max-width: 767px) {
+    padding: 24px 0 40px;
+  }
+}
+
 .header {
   width: 100%;
   margin-bottom: 28px;

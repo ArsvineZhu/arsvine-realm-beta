@@ -195,27 +195,48 @@ export async function getPostBySlugAndContentLocale(slug: string, locale: BlogCo
   };
 }
 
-export async function getPostBySlugAndLocale(slug: string, locale: Locale) {
+export async function getPostMetaBySlugAndLocale(slug: string, locale: Locale) {
   const entry = await getBlogIndexEntry(slug);
   if (!entry) {
     throw new Error(`No post found for slug: ${slug}`);
   }
 
-  const actualLocale = getPreferredVariantLocale(entry, locale);
-  const file = await fetchGitHubContent(buildVariantPath(slug, actualLocale));
+  const actualContentLocale = getPreferredVariantLocale(entry, locale);
+  const meta = getVariantMetaFromIndex(entry, actualContentLocale);
+  const translationStatus = getTranslationStatus(locale, actualContentLocale, meta.originLocale);
+
+  return {
+    meta,
+    requestedLocale: locale,
+    actualLocale:
+      actualContentLocale === 'zh-CN' || actualContentLocale === 'zh-TW' || actualContentLocale === 'en'
+        ? actualContentLocale
+        : defaultLocale,
+    actualContentLocale,
+    fellBack: locale !== actualContentLocale,
+    translationStatus,
+  };
+}
+
+export async function getPostBySlugAndLocale(slug: string, locale: Locale) {
+  const metaResult = await getPostMetaBySlugAndLocale(slug, locale);
+  const entry = await getBlogIndexEntry(slug);
+  if (!entry) {
+    throw new Error(`No post found for slug: ${slug}`);
+  }
+
+  const file = await fetchGitHubContent(buildVariantPath(slug, metaResult.actualContentLocale));
   const parsed = matter(file);
-  const meta = getVariantMeta(entry, actualLocale, parsed.content);
-  const translationStatus = getTranslationStatus(locale, actualLocale, meta.originLocale);
+  const meta = getVariantMeta(entry, metaResult.actualContentLocale, parsed.content);
 
   return {
     meta,
     content: parsed.content,
-    requestedLocale: locale,
-    actualLocale: actualLocale === 'zh-CN' || actualLocale === 'zh-TW' || actualLocale === 'en'
-      ? actualLocale
-      : defaultLocale,
-    fellBack: locale !== actualLocale,
-    translationStatus,
+    requestedLocale: metaResult.requestedLocale,
+    actualLocale: metaResult.actualLocale,
+    actualContentLocale: metaResult.actualContentLocale,
+    fellBack: metaResult.fellBack,
+    translationStatus: metaResult.translationStatus,
   };
 }
 

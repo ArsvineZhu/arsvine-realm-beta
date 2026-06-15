@@ -290,6 +290,28 @@
   }
 }
 
+.routeLoadingOverlayStandalone {
+  right: auto;
+  width: 100%;
+  padding: clamp(220px, 28vh, 320px) clamp(20px, 4vw, 40px) 0;
+
+  .routeLoadingCard {
+    width: min(100%, 720px);
+    margin-left: clamp(20px, 15vw, 320px);
+  }
+
+  @media (max-width: 1023px) {
+    .routeLoadingCard {
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+
+  @media (max-width: 767px) {
+    padding: clamp(180px, 24vh, 240px) 16px 0;
+  }
+}
+
 .routeLoadingCard {
   width: min(100%, 760px);
   display: flex;

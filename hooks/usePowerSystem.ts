@@ -9,6 +9,9 @@ const DISCHARGE_STEP = 1;
 const DISCHARGE_INTERVAL_MS = 50;
 const POWER_SYSTEM_STORAGE_KEY = 'arsvine:power-system';
 const THEME_MODE_STORAGE_KEY = 'arsvine:theme-mode';
+const DEFAULT_POWER_LEVEL = 67;
+const DEFAULT_TESSERACT_ACTIVATED = false;
+const DEFAULT_DISCHARGING = false;
 
 function readPersistedPowerState() {
   if (typeof window === 'undefined') {
@@ -40,14 +43,27 @@ function readPersistedPowerState() {
 }
 
 export default function usePowerSystem(mainVisible: boolean): PowerSystemState {
-  const [powerLevel, setPowerLevel] = useState(() => readPersistedPowerState()?.powerLevel ?? 67);
-  const [isTesseractActivated, setIsTesseractActivated] = useState(() => readPersistedPowerState()?.isTesseractActivated ?? false);
-  const [isDischarging, setIsDischarging] = useState(() => readPersistedPowerState()?.isDischarging ?? false);
+  const [powerLevel, setPowerLevel] = useState(DEFAULT_POWER_LEVEL);
+  const [isTesseractActivated, setIsTesseractActivated] = useState(DEFAULT_TESSERACT_ACTIVATED);
+  const [isDischarging, setIsDischarging] = useState(DEFAULT_DISCHARGING);
   const dischargeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const isDischargingRef = useRef(readPersistedPowerState()?.isDischarging ?? false);
+  const isDischargingRef = useRef(DEFAULT_DISCHARGING);
 
   // Inverted mode is purely derived from power state — no separate state needed.
   const isInverted = powerLevel === 100 && !isDischarging;
+
+  useEffect(() => {
+    const persisted = readPersistedPowerState();
+    if (!persisted) {
+      return;
+    }
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- persisted power state must be restored immediately after mount to avoid SSR/client hydration drift
+    setPowerLevel(persisted.powerLevel);
+    setIsTesseractActivated(persisted.isTesseractActivated);
+    setIsDischarging(persisted.isDischarging);
+    isDischargingRef.current = persisted.isDischarging;
+  }, []);
 
   useEffect(() => {
     isDischargingRef.current = isDischarging;
