@@ -60,18 +60,19 @@
   }
 }
 
-.contactSection {
+.contentSection.contactSection {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 30px;
   position: relative;
-  padding-bottom: 50px;
+  min-height: 100vh;
+  padding-bottom: 12px;
   background-image: url('/decor/contour-map.webp');
   background-size: cover;
-  background-position: center center;
+  background-position: center 70%;
   background-repeat: no-repeat;
-  margin-bottom: 0px;
+  margin-bottom: 0;
 }
 
 .logIconContainer {
@@ -217,8 +218,7 @@
         rgba(200, 200, 200, 0.1) 0,
         rgba(200, 200, 200, 0.1) 1px,
         transparent 1px,
-        transparent 20px
-      );
+        transparent 20px);
   }
 
   &::after {
@@ -226,8 +226,7 @@
         rgba(200, 200, 200, 0.1) 0,
         rgba(200, 200, 200, 0.1) 1px,
         transparent 1px,
-        transparent 20px
-      );
+        transparent 20px);
   }
 }
 
@@ -291,9 +290,9 @@
 
 .radarContact4 {
   position: absolute;
-  top: 55%;
-  left: 90%;
-  transform: translate(-50%, -50%);
+  top: 49%;
+  left: calc(50% + 18px);
+  transform: translateY(-50%);
   background: none;
   border: none;
   padding: 0;
@@ -389,10 +388,11 @@
 }
 
 .aboutContentInner {
-  & > .siteStatsContainer,
-  & > .aboutLinks,
-  & > .footerInfo,
-  & > .aboutImageContainer {
+
+  &>.siteStatsContainer,
+  &>.aboutLinks,
+  &>.footerInfo,
+  &>.aboutImageContainer {
     margin-top: 5px;
   }
 }

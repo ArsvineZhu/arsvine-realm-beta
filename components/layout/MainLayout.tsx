@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { startTransition, useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
@@ -111,7 +111,9 @@ export default function MainLayout({ children }) {
   useEffect(() => {
     if (animationsComplete && !webglReady) {
       const timeoutId = window.setTimeout(() => {
-        setWebglReady(true);
+        startTransition(() => {
+          setWebglReady(true);
+        });
       }, 0);
       return () => clearTimeout(timeoutId);
     }
@@ -144,8 +146,13 @@ export default function MainLayout({ children }) {
     scrollContainerRef.current = element;
   }, []);
 
-  const handleLeftNavLinkClick = (link: { label: string; hash: string }) => {
+  const handleLeftNavLinkClick = (link: { label: string; hash: string; group: 'content' | 'standalone' }) => {
     closeDrawer();
+
+    if (link.group === 'standalone') {
+      navigateTo(`/${locale}/${link.hash}`);
+      return;
+    }
 
     if (isContentPage) {
       if (isDetailOpen()) {
@@ -166,16 +173,6 @@ export default function MainLayout({ children }) {
       navigateTo(`/${locale}/content#${link.hash}`);
     }
   };
-
-  const handleFriendsClick = useCallback(() => {
-    closeDrawer();
-    navigateTo(`/${locale}/friends`);
-  }, [navigateTo, closeDrawer, locale]);
-
-  const handleTweetsClick = useCallback(() => {
-    closeDrawer();
-    navigateTo(`/${locale}/tweets`);
-  }, [navigateTo, closeDrawer, locale]);
 
   const routeLoadingText = routeLoadingState.kind === 'tweets'
     ? tTweets('loading')
@@ -263,9 +260,6 @@ export default function MainLayout({ children }) {
               handleGlobalBackClick={handleGlobalBackClick}
               navLinks={navLinks}
               handleLeftNavLinkClick={handleLeftNavLinkClick}
-              handleFriendsClick={handleFriendsClick}
-              handleTweetsClick={handleTweetsClick}
-              tweetsLabel={tNav('tweets')}
               powerLevel={powerLevel}
               isFateTypingActive={isFateTypingActive}
               displayedFateText={displayedFateText}

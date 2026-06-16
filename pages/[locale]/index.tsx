@@ -28,6 +28,10 @@ export default function Home({ locale }: HomeProps) {
   } = useApp();
 
   useEffect(() => {
+    if (process.env.NODE_ENV !== 'production') {
+      return;
+    }
+
     router.prefetch(`/${locale}/content`);
   }, [router, locale]);
 
@@ -48,6 +52,8 @@ export default function Home({ locale }: HomeProps) {
         <meta property="og:description" content={tSite('description')} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={`${getSiteUrl()}/${locale}/`} />
+        <meta name="twitter:title" content={tSite('title')} />
+        <meta name="twitter:description" content={tSite('description')} />
         <HreflangLinks basePath="/" />
       </Head>
       <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>

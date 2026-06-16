@@ -34,11 +34,13 @@ type BlogIndexVariant = {
   readingMinutes?: number;
 };
 
-export function isBlogContentLocale(value: string): value is BlogContentLocale {
-  return (blogContentLocales as readonly string[]).includes(value);
+export function isBlogContentLocale(value: unknown): value is BlogContentLocale {
+  return (
+    typeof value === 'string' && (blogContentLocales as readonly string[]).includes(value)
+  );
 }
 
-function normalizeAccess(access?: ContentPostAccess): ContentPostAccess {
+export function normalizeAccess(access?: ContentPostAccess): ContentPostAccess {
   if (access?.mode === 'totp') {
     return { mode: 'totp', group: access.group?.trim() || undefined };
   }
@@ -276,6 +278,3 @@ export function getProtectedPostPublicMeta(meta: BlogPostMeta): BlogPostMeta {
   return sanitizeProtectedPostMeta(meta);
 }
 
-export async function getAllPosts(): Promise<BlogPostMeta[]> {
-  return getAllPostsForLocale(defaultLocale);
-}

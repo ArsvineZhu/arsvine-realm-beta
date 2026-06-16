@@ -1,6 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import type { FateTypingState, EnvParamsTypingState, EnvData } from '../types';
+import { useSafeTimeouts } from '../lib/use-safe-timeouts';
+import {
+  TYPING_CONSTANTS,
+  formatFateTextForWrap,
+  getTypingDelays,
+} from '../lib/typing-effect';
+
+// 节奏常量与字符判定已抽到 lib/typing-effect.ts（4 处共享）。
+// 本文件保留 "Fate / EnvParams" 各自的编排逻辑：hitokoto 轮询、随机生成、
+// 多层 setTimeout 回调链等，纯节奏判定走 getTypingDelays。
 
 /**
  * Fate text typing effect — 节奏：
@@ -15,75 +25,6 @@ import type { FateTypingState, EnvParamsTypingState, EnvData } from '../types';
  */
 const HITOKOTO_PER_CYCLE = 1;
 const HITOKOTO_PAUSE_AFTER_TYPE = 4000; // ms，比预设的 1500 长，给短句更长停留
-const FATE_WRAP_MIN_UNITS = 18;
-const FATE_BREAK_PUNCTUATION = /[,.!?;:，。！？；：、]/;
-const ALPHABETIC_CHAR_RE = /[A-Za-z\u0400-\u04FF]/;
-const CJK_CHAR_RE = /[\u3400-\u9FFF\uF900-\uFAFF]/;
-
-const ALPHABETIC_TYPING_DELAY = 48;
-const ALPHABETIC_DELETE_DELAY = 32;
-const ALPHABETIC_PAUSE_AFTER_TYPE = 2600;
-
-const CJK_TYPING_DELAY = 150;
-const CJK_DELETE_DELAY = 100;
-const CJK_PAUSE_AFTER_TYPE = 1500;
-
-function getTypingUnitWeight(char: string): number {
-  return /[A-Za-z0-9]/.test(char) ? 1 : 2;
-}
-
-function formatFateTextForWrap(text: string): string {
-  let formatted = '';
-  let lineUnits = 0;
-
-  for (let i = 0; i < text.length; i += 1) {
-    const char = text[i];
-    formatted += char;
-
-    if (char === '\n') {
-      lineUnits = 0;
-      continue;
-    }
-
-    lineUnits += getTypingUnitWeight(char);
-
-    if (!FATE_BREAK_PUNCTUATION.test(char) || lineUnits < FATE_WRAP_MIN_UNITS) {
-      continue;
-    }
-
-    let nextIndex = i + 1;
-    while (nextIndex < text.length && text[nextIndex] === ' ') {
-      nextIndex += 1;
-    }
-
-    if (nextIndex < text.length) {
-      formatted += '\n';
-      lineUnits = 0;
-      i = nextIndex - 1;
-    }
-  }
-
-  return formatted;
-}
-
-function getTypingProfile(text: string) {
-  const hasAlphabetic = ALPHABETIC_CHAR_RE.test(text);
-  const hasCjk = CJK_CHAR_RE.test(text);
-
-  if (hasAlphabetic && !hasCjk) {
-    return {
-      typingDelay: ALPHABETIC_TYPING_DELAY,
-      deleteDelay: ALPHABETIC_DELETE_DELAY,
-      pauseAfterType: ALPHABETIC_PAUSE_AFTER_TYPE,
-    };
-  }
-
-  return {
-    typingDelay: CJK_TYPING_DELAY,
-    deleteDelay: CJK_DELETE_DELAY,
-    pauseAfterType: CJK_PAUSE_AFTER_TYPE,
-  };
-}
 
 export function useFateTypingEffect(textVisible: boolean): FateTypingState {
   const tSite = useTranslations('pages.site');
@@ -131,14 +72,14 @@ export function useFateTypingEffect(textVisible: boolean): FateTypingState {
 
     // 一轮预设：en (英文节奏) → zh (中文节奏)
     const presetCycle = (onDone: () => void) => {
-      const primaryProfile = getTypingProfile(englishText);
-      const secondaryProfile = getTypingProfile(chineseText);
+      const primaryProfile = getTypingDelays(englishText);
+      const secondaryProfile = getTypingDelays(chineseText);
 
-      typeString(englishText, 0, primaryProfile.typingDelay, () => {
+      typeString(englishText, 0, primaryProfile.typeDelay, () => {
         schedule(() => {
           deleteString(englishText, primaryProfile.deleteDelay, () => {
             schedule(() => {
-              typeString(chineseText, 0, secondaryProfile.typingDelay, () => {
+              typeString(chineseText, 0, secondaryProfile.typeDelay, () => {
                 schedule(() => {
                   deleteString(chineseText, secondaryProfile.deleteDelay, () => {
                     schedule(onDone, pauseAfterDelete);
@@ -151,7 +92,7 @@ export function useFateTypingEffect(textVisible: boolean): FateTypingState {
       });
     };
 
-    // 一句 hitokoto：fetch → 按中文节奏打/删；失败则回退一轮预设
+    // 一句 hitokoto：fetch → 按节奏打/删；失败则回退一轮预设
     const hitokotoCycle = (onDone: () => void, onFail: () => void) => {
       const controller = new AbortController();
       abortControllers.push(controller);
@@ -166,8 +107,8 @@ export function useFateTypingEffect(textVisible: boolean): FateTypingState {
         .then((text) => {
           if (cancelled) return;
           const wrappedText = formatFateTextForWrap(text);
-          const textProfile = getTypingProfile(wrappedText);
-          typeString(wrappedText, 0, textProfile.typingDelay, () => {
+          const textProfile = getTypingDelays(wrappedText);
+          typeString(wrappedText, 0, textProfile.typeDelay, () => {
             schedule(() => {
               deleteString(wrappedText, textProfile.deleteDelay, () => {
                 schedule(onDone, pauseAfterDelete);
@@ -237,34 +178,44 @@ export function useEnvParamsTypingEffect(textVisible: boolean): EnvParamsTypingS
   const [envData, setEnvData] = useState<EnvData | null>(null);
   const [envDataVersion, setEnvDataVersion] = useState(0);
   const currentTempRef = useRef(55.0);
+  const displayedEnvParamsRef = useRef('');
   const lastGeneratedParamsRef = useRef('');
+  const safeTimers = useSafeTimeouts();
+  // hook 顺序严格按"先所有 useState、useRef、useSafeTimeouts，再 useEffect"——后面 useEffect
+  // 不能放进 if/else 否则会破坏 React Hook 规则；safeTimers 只是 ref 集合，提前或延后都安全。
 
   useEffect(() => {
     if (textVisible) {
       const typingDelay = 35;
       const envDeleteDelay = 20;
+      const setDisplayedEnvParamsTracked = (updater: string | ((prev: string) => string)) => {
+        setDisplayedEnvParams((prev) => {
+          const next = typeof updater === 'function'
+            ? (updater as (prev: string) => string)(prev)
+            : updater;
+          displayedEnvParamsRef.current = next;
+          return next;
+        });
+      };
 
-      let timeouts = [];
-
-      const typeString = (str, index, delay, callback) => {
+      const typeString = (str: string, index: number, delay: number, callback?: () => void) => {
         if (index < str.length) {
-          setDisplayedEnvParams(prev => prev + str[index]);
-          const timeoutId = setTimeout(() => typeString(str, index + 1, delay, callback), delay);
-          timeouts.push(timeoutId);
+          setDisplayedEnvParamsTracked(prev => prev + str[index]);
+          safeTimers.setTimeout(() => typeString(str, index + 1, delay, callback), delay);
         } else if (callback) {
-          const timeoutId = setTimeout(callback, 0);
-          timeouts.push(timeoutId);
+          safeTimers.setTimeout(callback, 0);
         }
       };
 
-      const deleteEnvParamsString = (currentStr, delay, callback) => {
+      const deleteEnvParamsString = (currentStr: string, delay: number, callback?: () => void) => {
         if (currentStr.length > 0) {
-          setDisplayedEnvParams(prev => prev.slice(0, -1));
-          const timeoutId = setTimeout(() => deleteEnvParamsString(currentStr.slice(0, -1), delay, callback), delay);
-          timeouts.push(timeoutId);
+          setDisplayedEnvParamsTracked(prev => prev.slice(0, -1));
+          safeTimers.setTimeout(
+            () => deleteEnvParamsString(currentStr.slice(0, -1), delay, callback),
+            delay,
+          );
         } else if (callback) {
-          const timeoutId = setTimeout(callback, 0);
-          timeouts.push(timeoutId);
+          safeTimers.setTimeout(callback, 0);
         }
       };
 
@@ -304,15 +255,14 @@ export function useEnvParamsTypingEffect(textVisible: boolean): EnvParamsTypingS
         lastGeneratedParamsRef.current = newParams;
         typeString(newParams, 0, typingDelay, () => {
           const updateTime = 8000 + Math.floor(Math.random() * 7000);
-          const restartTimeout = setTimeout(() => {
+          safeTimers.setTimeout(() => {
             startTyping();
           }, updateTime);
-          timeouts.push(restartTimeout);
         });
       };
 
       const startTyping = () => {
-        const textToDelete = lastGeneratedParamsRef.current;
+        const textToDelete = displayedEnvParamsRef.current;
 
         if (textToDelete.length > 0) {
           deleteEnvParamsString(textToDelete, envDeleteDelay, () => {
@@ -323,20 +273,19 @@ export function useEnvParamsTypingEffect(textVisible: boolean): EnvParamsTypingS
         }
       };
 
-      const initialDelay = setTimeout(() => {
+      safeTimers.setTimeout(() => {
         startTyping();
       }, 1000);
-      timeouts.push(initialDelay);
 
       return () => {
-        timeouts.forEach(clearTimeout);
+        displayedEnvParamsRef.current = '';
         setDisplayedEnvParams('');
         setEnvData(null);
         setEnvDataVersion(0);
         lastGeneratedParamsRef.current = '';
       };
     }
-  }, [textVisible]);
+  }, [textVisible, safeTimers]);
 
   return { displayedEnvParams, isEnvParamsTyping, envData, envDataVersion };
 }

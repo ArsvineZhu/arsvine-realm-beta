@@ -1,6 +1,7 @@
 import { createContext, useContext, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useApp } from './AppContext';
+import { useResponsive } from '../hooks/useMediaQuery';
 
 interface TransitionContextValue {
   navigateTo: (url: string, options?: { scroll?: boolean }) => void;
@@ -63,17 +64,36 @@ const DIAG_COLLAPSE_OPTS: KeyframeAnimationOptions = {
   fill: 'forwards',
 };
 
-const checkMobile = () =>
-  typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;
+const checkMobile = () => {
+  // fallback for非 hook 上下文（handleLoadingComplete 等）—— 主流程已走 useResponsive。
+  return typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;
+};
 
 export function TransitionProvider({ children, pageWrapperRef }: TransitionProviderProps) {
   const router = useRouter();
   const { retractColumns, expandColumns } = useApp();
+  const { isMobile: hookIsMobile } = useResponsive();
   const isTransitioning = useRef(false);
   const queuedNav = useRef<{ url: string; options?: { scroll?: boolean } } | null>(null);
   const backOverrideRef = useRef<(() => void) | null>(null);
   const activeAnim = useRef<Animation | null>(null);
   const navigateToRef = useRef<((url: string, options?: { scroll?: boolean }) => void) | null>(null);
+  // 收集所有"未完成的兜底 timeout / 一次性 transitionend 监听器"，
+  // 让 cleanup 与新一轮 navigateTo 都能取消上一次遗留的副作用，避免 setState-after-unmount
+  // 与"双闪烁"竞态。每一项都包括 clear/remove 自身的逻辑，即可调用即可清理。
+  const pendingCleanupsRef = useRef<Array<() => void>>([]);
+
+  const runPendingCleanups = useCallback(() => {
+    const cleanups = pendingCleanupsRef.current;
+    pendingCleanupsRef.current = [];
+    for (const cleanup of cleanups) {
+      try {
+        cleanup();
+      } catch {
+        // 单个清理失败不影响其他
+      }
+    }
+  }, []);
 
   const cancelActiveAnim = () => {
     if (activeAnim.current) {
@@ -109,6 +129,9 @@ export function TransitionProvider({ children, pageWrapperRef }: TransitionProvi
     isTransitioning.current = true;
     queuedNav.current = null;
     cancelActiveAnim();
+    // 新一轮转场开始前，清掉上一轮遗留的兜底 timer / 监听（理论上应已自清，
+    // 这里是防御性保险），避免上一轮 onFadeIn 在新 wrapper 状态上误触发。
+    runPendingCleanups();
     // Home / 跳回 home 的判定：路由模板是 /[locale]
     const currentlyHome = router.pathname === '/[locale]';
     // 目标是 home 的判定：URL 形如 /<locale> 或 /<locale>/
@@ -138,7 +161,7 @@ export function TransitionProvider({ children, pageWrapperRef }: TransitionProvi
       }).catch(() => {});
     };
 
-    const mobile = checkMobile();
+    const mobile = hookIsMobile || checkMobile();
 
     const wapiDiagExpand = () => {
       wrapper.style.opacity = '';
@@ -211,15 +234,32 @@ export function TransitionProvider({ children, pageWrapperRef }: TransitionProvi
       pushThen(url, () => {
         wrapper.style.transition = 'opacity 0.4s ease-in';
         wrapper.style.opacity = '1';
-        const onFadeIn = () => {
+
+        // transitionend + 500ms 兜底 timer 双保险，但只能跑一次；
+        // 哪一边先到，就把另一边连带这个清理项一起从 pending 队列里摘掉，
+        // 避免组件卸载或新一轮 navigateTo 来时旧 timer/listener 仍在飞。
+        let fired = false;
+        let fallbackId: number | null = null;
+        const cleanup = () => {
           wrapper.removeEventListener('transitionend', onFadeIn);
+          if (fallbackId !== null) {
+            window.clearTimeout(fallbackId);
+            fallbackId = null;
+          }
+          pendingCleanupsRef.current = pendingCleanupsRef.current.filter((c) => c !== cleanup);
+        };
+        const onFadeIn = () => {
+          if (fired) return;
+          fired = true;
+          cleanup();
           wrapper.style.transition = '';
           wrapper.style.opacity = '';
           isTransitioning.current = false;
           processQueue();
         };
         wrapper.addEventListener('transitionend', onFadeIn, { once: true });
-        setTimeout(onFadeIn, 500);
+        fallbackId = window.setTimeout(onFadeIn, 500);
+        pendingCleanupsRef.current.push(cleanup);
       }, options);
     } else {
       // Other: WAAPI slide out → push → WAAPI slide in
@@ -232,12 +272,21 @@ export function TransitionProvider({ children, pageWrapperRef }: TransitionProvi
         pushThen(url, wapiSlideIn, options);
       }).catch(() => {});
     }
-  }, [router, pageWrapperRef, retractColumns, expandColumns]);
+  }, [router, pageWrapperRef, retractColumns, expandColumns, runPendingCleanups, hookIsMobile]);
 
   // Keep navigateToRef updated
   useEffect(() => {
     navigateToRef.current = navigateTo;
   }, [navigateTo]);
+
+  // 卸载时清理任何未完成的兜底 timer / transitionend 监听，避免在已 stale 的
+  // wrapper / state 上触发副作用（"导航卡死 / 双闪烁"竞态来源之一）。
+  useEffect(() => {
+    return () => {
+      runPendingCleanups();
+      cancelActiveAnim();
+    };
+  }, [runPendingCleanups]);
 
   // Handle browser back/forward navigation (popstate) that bypasses navigateTo
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { startTransition, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -25,8 +25,10 @@ import {
   getPostSlugs,
   getAvailablePostContentLocales,
   getBlogPostEntry,
+  normalizeAccess,
   type BlogContentLocale,
 } from '../../../lib/blog';
+import type { ContentPostAccess } from '../../../lib/content/types';
 import { loadMessages } from '../../../lib/i18n-data';
 import type { BlogPostMeta, TranslationStatus } from '../../../types';
 import styles from '../../../styles/BlogDetailView.module.scss';
@@ -34,6 +36,8 @@ import hudStyles from '../../../styles/Home.module.scss';
 import accessStyles from '../../../styles/PostAccessPage.module.scss';
 import { useApp } from '../../../contexts/AppContext';
 import { useTransition } from '../../../contexts/TransitionContext';
+import ProtectedPostGate from '../../../components/blog/ProtectedPostGate';
+import BlogStateShell from '../../../components/blog/BlogStateShell';
 import { getSiteUrl } from '../../../data/site';
 import { locales, defaultLocale, type Locale } from '../../../i18n/config';
 import { formatReadingTime } from '../../../lib/format-reading-time';
@@ -50,7 +54,7 @@ interface BlogPostPageProps {
   actualContentLocale: BlogContentLocale;
   availableContentLocales: BlogContentLocale[];
   contentVariants: Partial<Record<BlogContentLocale, BlogVariantPayload>>;
-  access: { mode: string; group?: string };
+  access: ContentPostAccess;
   isProtected: boolean;
 }
 
@@ -81,6 +85,17 @@ export default function BlogPostPage({
 }: BlogPostPageProps) {
   const router = useRouter();
   const tCommon = useTranslations('common');
+  const [hydrationReady, setHydrationReady] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      startTransition(() => {
+        setHydrationReady(true);
+      });
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   const {
     defaultContentLocale,
     requestedContentLocale,
@@ -106,6 +121,7 @@ export default function BlogPostPage({
     contentVariants,
     access,
     isProtected,
+    hydrationReady,
   });
 
   if (router.isFallback || viewState === 'authChecking') {
@@ -177,232 +193,6 @@ export default function BlogPostPage({
   );
 }
 
-function ProtectedPostGate({
-  locale,
-  meta,
-  group,
-  nextContentLocale,
-  onVerified,
-}: {
-  locale: Locale;
-  meta: BlogPostMeta;
-  group: string;
-  nextContentLocale: BlogContentLocale;
-  onVerified: () => void | Promise<void>;
-}) {
-  const { isInverted } = useApp();
-  const t = useTranslations('pages.access');
-  const inputRef = useRef<HTMLInputElement>(null);
-  const lastSubmittedTokenRef = useRef<string | null>(null);
-  const [token, setToken] = useState('');
-  const [error, setError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
-  const [entered, setEntered] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setEntered(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const submitToken = useCallback(async (nextToken: string) => {
-    if (submitting || nextToken.length !== 6 || lastSubmittedTokenRef.current === nextToken) {
-      return;
-    }
-
-    lastSubmittedTokenRef.current = nextToken;
-    setSubmitting(true);
-    setError('');
-
-    try {
-      const response = await fetch('/api/protected-verify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          group,
-          token: nextToken,
-          next: buildBlogPostHref(locale, meta.slug, nextContentLocale),
-        }),
-      });
-
-      const json = (await response.json()) as ProtectedVerifyResponse;
-
-      if (!response.ok || !json.ok) {
-        if ('error' in json) {
-          throw new Error(json.error.message || t('invalidToken'));
-        }
-        throw new Error(t('invalidToken'));
-      }
-
-      await onVerified();
-    } catch (submissionError) {
-      setError(
-        submissionError instanceof Error ? submissionError.message : t('invalidToken'),
-      );
-    } finally {
-      setSubmitting(false);
-    }
-  }, [group, locale, meta.slug, nextContentLocale, onVerified, submitting, t]);
-
-  const handleTokenChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const nextToken = event.target.value.replace(/\D+/g, '').slice(0, 6);
-    lastSubmittedTokenRef.current = nextToken.length === 6 ? lastSubmittedTokenRef.current : null;
-    setError('');
-    setToken(nextToken);
-    if (nextToken.length === 6) {
-      void submitToken(nextToken);
-    }
-  }, [submitToken]);
-
-  const handleFieldClick = useCallback(() => {
-    inputRef.current?.focus();
-  }, []);
-
-  const handleSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (token.length === 6) {
-      void submitToken(token);
-    }
-  }, [submitToken, token]);
-
-  return (
-    <div className={`${styles.pageWrapper} ${isInverted ? hudStyles.inverted : ''}`}>
-      <Head>
-        <title>{`${meta.title} // Blog`}</title>
-        <meta name="description" content={meta.excerpt} />
-        <meta name="robots" content="noindex,nofollow,noarchive" />
-        <meta property="og:title" content={meta.title} />
-        <meta property="og:description" content={meta.excerpt} />
-        <meta property="og:type" content="article" />
-        <meta property="og:url" content={`${getSiteUrl()}/${locale}/blog/${meta.slug}`} />
-        <HreflangLinks basePath={`/blog/${meta.slug}`} />
-      </Head>
-
-      <div className={styles.mainContent}>
-        <header className={`${styles.headerSection} ${entered ? styles.entered : ''}`}>
-          <div className={styles.headerContent}>
-            <span className={styles.headerSignal}>{t('heading')}</span>
-            <h1 className={styles.headerTitle}>{meta.title}</h1>
-            <div className={styles.headerMeta}>
-              {meta.date && <span className={styles.headerDate}>{meta.date}</span>}
-              <span className={styles.headerReadingTime}>{t('description')}</span>
-            </div>
-          </div>
-        </header>
-
-        <section className={styles.contentSection}>
-          <div className={`${accessStyles.page} ${accessStyles.embedded}`}>
-            <form className={accessStyles.card} onSubmit={handleSubmit}>
-              <label className={accessStyles.label} htmlFor="totp-token-inline">
-                {t('tokenLabel')}
-              </label>
-              <div
-                className={accessStyles.codeField}
-                onClick={handleFieldClick}
-                role="presentation"
-              >
-                <input
-                  ref={inputRef}
-                  id="totp-token-inline"
-                  className={accessStyles.hiddenInput}
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  pattern="[0-9]*"
-                  maxLength={6}
-                  autoFocus
-                  value={token}
-                  disabled={submitting}
-                  onChange={handleTokenChange}
-                  onFocus={() => setIsFocused(true)}
-                  onBlur={() => setIsFocused(false)}
-                />
-                <div className={accessStyles.slotGrid} aria-hidden="true">
-                  {Array.from({ length: 6 }, (_, index) => {
-                    const char = token[index] ?? '';
-                    const isActive = isFocused && index === Math.min(token.length, 5) && token.length < 6;
-                    const isFilled = char !== '';
-
-                    return (
-                      <span
-                        key={index}
-                        className={`${accessStyles.slot}${isFilled ? ` ${accessStyles.slotFilled}` : ''}${isActive ? ` ${accessStyles.slotActive}` : ''}`}
-                      >
-                        {char || '\u00A0'}
-                      </span>
-                    );
-                  })}
-                </div>
-              </div>
-              <p className={accessStyles.hint}>{t('hint')}</p>
-              <p className={accessStyles.status} aria-live="polite">
-                {submitting ? t('verifying') : '\u00A0'}
-              </p>
-              {error ? <p className={accessStyles.error}>{error}</p> : null}
-              <button className={accessStyles.hiddenSubmit} type="submit" tabIndex={-1} aria-hidden="true" />
-            </form>
-          </div>
-        </section>
-      </div>
-    </div>
-  );
-}
-
-function BlogStateShell({
-  locale,
-  meta,
-  signalLabel,
-  statusText,
-  description,
-  error,
-  action,
-  isProtected = false,
-}: BlogShellProps) {
-  const { isInverted } = useApp();
-  const [entered, setEntered] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setEntered(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
-
-  return (
-    <div className={`${styles.pageWrapper} ${isInverted ? hudStyles.inverted : ''}`}>
-      <Head>
-        <title>{`${meta.title} // Blog`}</title>
-        <meta name="description" content={meta.excerpt} />
-        {isProtected ? <meta name="robots" content="noindex,nofollow,noarchive" /> : null}
-        <HreflangLinks basePath={`/blog/${meta.slug}`} />
-      </Head>
-      <div className={styles.mainContent}>
-        <header className={`${styles.headerSection} ${entered ? styles.entered : ''}`}>
-          <div className={styles.headerContent}>
-            <span className={styles.headerSignal}>{signalLabel}</span>
-            <h1 className={styles.headerTitle}>{meta.title}</h1>
-            <div className={styles.headerMeta}>
-              {meta.date && <span className={styles.headerDate}>{meta.date}</span>}
-              {meta.readingMinutes > 0 ? <span className={styles.headerReadingTime}>{meta.readingMinutes}m</span> : null}
-            </div>
-            {description ? <p className={styles.headerExcerpt}>{description}</p> : null}
-            {error ? (
-              <div className={styles.articleLocaleErrorRow}>
-                <p className={accessStyles.error}>{error}</p>
-                {action}
-              </div>
-            ) : null}
-          </div>
-        </header>
-        <section className={styles.contentSection}>
-          <div className={styles.loadingIndicator}>
-            <span className={styles.loadingText}>{statusText}</span>
-          </div>
-        </section>
-      </div>
-    </div>
-  );
-}
-
 function BlogDetailContent({
   locale,
   meta,
@@ -449,12 +239,27 @@ function BlogDetailContent({
   const [titleDone, setTitleDone] = useState(false);
 
   useEffect(() => {
-    if (!titleRef.current) { setTitleDone(true); return; }
+    if (!titleRef.current) {
+      startTransition(() => {
+        setTitleDone(true);
+      });
+      return;
+    }
     const timer = setTimeout(() => {
-      if (!titleRef.current) { setTitleDone(true); return; }
+      if (!titleRef.current) {
+        startTransition(() => {
+          setTitleDone(true);
+        });
+        return;
+      }
       const wrappers = titleRef.current.querySelectorAll(`.${styles.charWrapper}`);
       const inners = titleRef.current.querySelectorAll(`.${styles.charInner}`);
-      if (inners.length === 0) { setTitleDone(true); return; }
+      if (inners.length === 0) {
+        startTransition(() => {
+          setTitleDone(true);
+        });
+        return;
+      }
       wrappers.forEach((wrapper, i) => {
         const inner = inners[i];
         gsap.set(wrapper, { overflow: 'hidden', display: 'inline-block', position: 'relative', verticalAlign: 'top' });
@@ -465,7 +270,9 @@ function BlogDetailContent({
           duration: 0.6,
           delay: 0.4 + i * 0.06,
           ease: 'power3.out',
-          onComplete: i === inners.length - 1 ? () => setTitleDone(true) : undefined,
+          onComplete: i === inners.length - 1 ? () => startTransition(() => {
+            setTitleDone(true);
+          }) : undefined,
         });
       });
     }, 50);
@@ -473,7 +280,11 @@ function BlogDetailContent({
   }, [meta.title, selectedContentLocale]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setEntered(true), 100);
+    const timer = setTimeout(() => {
+      startTransition(() => {
+        setEntered(true);
+      });
+    }, 100);
     return () => clearTimeout(timer);
   }, []);
 
@@ -601,6 +412,8 @@ function BlogDetailContent({
         <meta property="og:description" content={meta.excerpt} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={`${getSiteUrl()}/${locale}/blog/${meta.slug}`} />
+        <meta name="twitter:title" content={meta.title} />
+        <meta name="twitter:description" content={meta.excerpt} />
         <meta property="article:published_time" content={meta.date} />
         {meta.tags.map((tag) => (
           <meta key={tag} property="article:tag" content={tag} />
@@ -843,10 +656,3 @@ export const getStaticProps: GetStaticProps<BlogPostPageProps> = async ({ params
     return { notFound: true };
   }
 };
-
-function normalizeAccess(access?: { mode: string; group?: string }): { mode: string; group?: string } {
-  if (access?.mode === 'totp') {
-    return { mode: 'totp', group: access.group?.trim() || undefined };
-  }
-  return { mode: 'public' };
-}
