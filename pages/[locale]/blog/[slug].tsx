@@ -11,10 +11,17 @@ import MDXComponents from '../../../components/mdx/MDXComponents';
 import LocaleFallbackBanner from '../../../components/shared/LocaleFallbackBanner';
 import HreflangLinks from '../../../components/shared/HreflangLinks';
 import { AnimatedTitleChars } from '../../../components/shared/AnimatedTitleChars';
+import useBlogPostState, {
+  blogContentLocaleLabels,
+  buildBlogPostHref,
+  type BlogVariantPayload,
+  type BlogPostViewState,
+} from '../../../hooks/useBlogPostState';
 import {
   getPostBySlugAndLocale,
   getPostMetaBySlugAndLocale,
   getAllPostsForLocale,
+  getProtectedPostPublicMeta,
   getPostSlugs,
   getAvailablePostContentLocales,
   getBlogPostEntry,
@@ -30,24 +37,7 @@ import { useTransition } from '../../../contexts/TransitionContext';
 import { getSiteUrl } from '../../../data/site';
 import { locales, defaultLocale, type Locale } from '../../../i18n/config';
 import { formatReadingTime } from '../../../lib/format-reading-time';
-
-const blogContentLocaleLabels: Record<BlogContentLocale, string> = {
-  'zh-CN': '简中',
-  'zh-TW': '繁中',
-  en: 'English',
-  ja: '日本語',
-  ru: 'Русский',
-  fr: 'Français',
-};
-
-function isBlogContentLocale(value: unknown): value is BlogContentLocale {
-  return typeof value === 'string' && value in blogContentLocaleLabels;
-}
-
-interface BlogVariantPayload {
-  meta: BlogPostMeta;
-  mdxSource: MDXRemoteSerializeResult;
-}
+import type { ProtectedVerifyResponse } from '../../../lib/content/access-api';
 
 interface BlogPostPageProps {
   locale: Locale;
@@ -64,43 +54,16 @@ interface BlogPostPageProps {
   isProtected: boolean;
 }
 
-function getRequestedContentLocaleFromPath(asPath: string): BlogContentLocale | null {
-  const query = asPath.split('?')[1]?.split('#')[0];
-  if (!query) return null;
-
-  const lang = new URLSearchParams(query).get('lang');
-  return lang && isBlogContentLocale(lang) ? lang : null;
-}
-
-function resolveDefaultContentLocale(
-  pageLocale: Locale,
-  availableLocales: BlogContentLocale[],
-  fallbackLocale: BlogContentLocale,
-): BlogContentLocale {
-  if (availableLocales.includes(pageLocale)) {
-    return pageLocale;
-  }
-  return fallbackLocale;
-}
-
-function buildProtectedPostApiPath(locale: BlogContentLocale, slug: string) {
-  const search = new URLSearchParams({
-    locale,
-    slug,
-  });
-  return `/api/post-variant?${search.toString()}`;
-}
-
-function buildBlogPostHref(locale: Locale, slug: string, contentLocale: BlogContentLocale) {
-  return `/${locale}/blog/${slug}?lang=${encodeURIComponent(contentLocale)}`;
-}
-
-function writeContentLocaleQuery(nextContentLocale: BlogContentLocale) {
-  if (typeof window === 'undefined') return;
-
-  const url = new URL(window.location.href);
-  url.searchParams.set('lang', nextContentLocale);
-  window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+interface BlogShellProps {
+  locale: Locale;
+  meta: BlogPostMeta;
+  signalLabel: string;
+  statusText: string;
+  description?: string;
+  entered?: boolean;
+  error?: string;
+  action?: React.ReactNode;
+  isProtected?: boolean;
 }
 
 export default function BlogPostPage({
@@ -117,175 +80,78 @@ export default function BlogPostPage({
   isProtected,
 }: BlogPostPageProps) {
   const router = useRouter();
-  const defaultContentLocale = useMemo(
-    () => resolveDefaultContentLocale(locale, availableContentLocales, actualContentLocale),
-    [actualContentLocale, availableContentLocales, locale],
-  );
-  const [requestedContentLocale, setRequestedContentLocale] = useState<BlogContentLocale>(
-    () => getRequestedContentLocaleFromPath(router.asPath) ?? defaultContentLocale,
-  );
-  const initialContentLocale = actualContentLocale;
-  const [authState, setAuthState] = useState<'checking' | 'required' | 'granted'>(
-    !isProtected || access.mode === 'public' ? 'granted' : 'checking',
-  );
-  const [lazyVariants, setLazyVariants] = useState<Partial<Record<BlogContentLocale, BlogVariantPayload>>>({});
-  const [loadingLang, setLoadingLang] = useState<BlogContentLocale | null>(null);
-  const [selectedContentLocale, setSelectedContentLocale] = useState<BlogContentLocale>(initialContentLocale);
-  const [loadError, setLoadError] = useState('');
-  const allVariants = useMemo(
-    () => ({ ...contentVariants, ...lazyVariants }),
-    [contentVariants, lazyVariants],
-  );
-  const baseVariant = useMemo(
-    () => (mdxSource ? { meta, mdxSource } : null),
-    [mdxSource, meta],
-  );
-  const selectedVariant = allVariants[selectedContentLocale] ?? baseVariant;
-  const suppressFallbackBanner =
-    selectedContentLocale !== actualContentLocale || requestedContentLocale !== actualContentLocale;
-  const effectiveStatus: TranslationStatus = suppressFallbackBanner
-    ? 'source'
-    : translationStatus;
-  const effectiveOriginLocale: Locale = ((selectedVariant?.meta.originLocale)
-    ?? meta.originLocale
-    ?? actualLocale) as Locale;
-
-  const updateContentLocaleQuery = useCallback((nextContentLocale: BlogContentLocale) => {
-    if (typeof window === 'undefined') return;
-
-    setRequestedContentLocale(nextContentLocale);
-    writeContentLocaleQuery(nextContentLocale);
-  }, []);
-
-  const loadVariant = useCallback(async (nextContentLocale: BlogContentLocale) => {
-    setLoadingLang(nextContentLocale);
-    setLoadError('');
-
-    try {
-      const response = await fetch(buildProtectedPostApiPath(nextContentLocale, meta.slug));
-      const data = (await response.json()) as BlogVariantPayload | { error?: string };
-
-      if (!response.ok || !('meta' in data) || !('mdxSource' in data)) {
-        if (response.status === 403) {
-          setAuthState('required');
-          return null;
-        }
-        throw new Error('failed_to_load_variant');
-      }
-
-      setLazyVariants((prev) => ({ ...prev, [nextContentLocale]: data }));
-      return data;
-    } catch {
-      setLoadError('Unable to load article content.');
-      return null;
-    } finally {
-      setLoadingLang((current) => (current === nextContentLocale ? null : current));
-    }
-  }, [meta.slug]);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- slug/asPath change must immediately resync the requested article-language query state
-    setRequestedContentLocale(getRequestedContentLocaleFromPath(router.asPath) ?? defaultContentLocale);
-    setLazyVariants({});
-    setLoadingLang(null);
-    setLoadError('');
-    setSelectedContentLocale(initialContentLocale);
-    setAuthState(!isProtected || access.mode === 'public' ? 'granted' : 'checking');
-  }, [access.mode, defaultContentLocale, actualContentLocale, initialContentLocale, isProtected, meta.slug, router.asPath]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const currentLang = getRequestedContentLocaleFromPath(window.location.href);
-    if (currentLang === requestedContentLocale) return;
-
-    writeContentLocaleQuery(requestedContentLocale);
-  }, [requestedContentLocale]);
-
-  useEffect(() => {
-    if (!isProtected || access.mode === 'public' || !access.group) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- public posts bypass the protected gate by definition
-      setAuthState('granted');
-      return;
-    }
-
-    let cancelled = false;
-    fetch(`/api/grant-check?group=${encodeURIComponent(access.group)}`)
-      .then((r) => r.json())
-      .then((data: { ok: boolean; granted: boolean }) => {
-        if (cancelled) return;
-        setAuthState(data.granted ? 'granted' : 'required');
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setAuthState('required');
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [access.group, access.mode, isProtected]);
-
-  useEffect(() => {
-    if (authState !== 'granted') return;
-    const targetContentLocale = requestedContentLocale;
-    const hasBaseVariantForSelected = Boolean(
-      baseVariant && selectedContentLocale === actualContentLocale,
-    );
-
-    if (targetContentLocale !== selectedContentLocale) {
-      if (loadingLang === targetContentLocale) return;
-      if (allVariants[targetContentLocale]) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- once the requested locale payload is already cached, switch the displayed locale immediately
-        setSelectedContentLocale(targetContentLocale);
-        return;
-      }
-
-      void loadVariant(targetContentLocale).then((payload) => {
-        if (payload) {
-          setSelectedContentLocale(targetContentLocale);
-        }
-      });
-      return;
-    }
-
-    if (hasBaseVariantForSelected || allVariants[selectedContentLocale]) {
-      return;
-    }
-    if (loadingLang === selectedContentLocale) return;
-
-    void loadVariant(selectedContentLocale);
-  }, [
-    actualContentLocale,
-    allVariants,
-    authState,
-    baseVariant,
-    loadVariant,
-    loadingLang,
+  const tCommon = useTranslations('common');
+  const {
+    defaultContentLocale,
     requestedContentLocale,
+    viewState,
+    selectedVariant,
     selectedContentLocale,
-  ]);
+    loadingLang,
+    loadError,
+    effectiveStatus,
+    effectiveOriginLocale,
+    updateContentLocaleQuery,
+    markAuthGranted,
+    retryRequestedContentLocale,
+  } = useBlogPostState({
+    routerAsPath: router.asPath,
+    locale,
+    meta,
+    mdxSource,
+    translationStatus,
+    actualLocale,
+    actualContentLocale,
+    availableContentLocales,
+    contentVariants,
+    access,
+    isProtected,
+  });
 
-  if (router.isFallback || authState === 'checking') {
-    return <BlogLoadingShell />;
+  if (router.isFallback || viewState === 'authChecking') {
+    return (
+      <BlogStateShell
+        locale={locale}
+        meta={meta}
+        signalLabel={tCommon('signalFragment')}
+        statusText={tCommon('decoding')}
+        isProtected={isProtected}
+      />
+    );
   }
 
-  if (authState === 'required' && access.mode === 'totp' && access.group) {
+  if (viewState === 'authRequired' && access.mode === 'totp' && access.group) {
     return (
       <ProtectedPostGate
         locale={locale}
         meta={meta}
         group={access.group}
-        onVerified={() => {
-          setAuthState('granted');
-        }}
+        nextContentLocale={requestedContentLocale}
+        onVerified={markAuthGranted}
       />
     );
   }
 
   if (!selectedVariant) {
-    return <BlogLoadingShell />;
+    return (
+      <BlogStateShell
+        locale={locale}
+        meta={meta}
+        signalLabel={tCommon('signalFragment')}
+        statusText={viewState === 'loadFailed' ? tCommon('loading') : tCommon('decoding')}
+        error={loadError}
+        action={loadError ? (
+          <button
+            type="button"
+            className={styles.articleLocaleRetry}
+            onClick={retryRequestedContentLocale}
+          >
+            {tCommon('retry')}
+          </button>
+        ) : null}
+        isProtected={isProtected}
+      />
+    );
   }
 
   return (
@@ -298,14 +164,15 @@ export default function BlogPostPage({
       translationStatus={effectiveStatus}
       actualLocale={actualLocale}
       originLocale={effectiveOriginLocale}
+      viewState={viewState}
       selectedContentLocale={selectedContentLocale}
-      setSelectedContentLocale={setSelectedContentLocale}
       availableContentLocales={availableContentLocales}
       loadingLang={loadingLang}
       actualContentLocale={actualContentLocale}
       defaultContentLocale={defaultContentLocale}
       updateContentLocaleQuery={updateContentLocaleQuery}
       loadError={loadError}
+      retryRequestedContentLocale={retryRequestedContentLocale}
     />
   );
 }
@@ -314,11 +181,13 @@ function ProtectedPostGate({
   locale,
   meta,
   group,
+  nextContentLocale,
   onVerified,
 }: {
   locale: Locale;
   meta: BlogPostMeta;
   group: string;
+  nextContentLocale: BlogContentLocale;
   onVerified: () => void | Promise<void>;
 }) {
   const { isInverted } = useApp();
@@ -354,17 +223,17 @@ function ProtectedPostGate({
         body: JSON.stringify({
           group,
           token: nextToken,
-          next: buildBlogPostHref(locale, meta.slug, locale),
+          next: buildBlogPostHref(locale, meta.slug, nextContentLocale),
         }),
       });
 
-      const json = (await response.json()) as {
-        ok: boolean;
-        error?: { message?: string };
-      };
+      const json = (await response.json()) as ProtectedVerifyResponse;
 
       if (!response.ok || !json.ok) {
-        throw new Error(json.error?.message || t('invalidToken'));
+        if ('error' in json) {
+          throw new Error(json.error.message || t('invalidToken'));
+        }
+        throw new Error(t('invalidToken'));
       }
 
       await onVerified();
@@ -375,7 +244,7 @@ function ProtectedPostGate({
     } finally {
       setSubmitting(false);
     }
-  }, [group, locale, meta.slug, onVerified, submitting, t]);
+  }, [group, locale, meta.slug, nextContentLocale, onVerified, submitting, t]);
 
   const handleTokenChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const nextToken = event.target.value.replace(/\D+/g, '').slice(0, 6);
@@ -403,6 +272,7 @@ function ProtectedPostGate({
       <Head>
         <title>{`${meta.title} // Blog`}</title>
         <meta name="description" content={meta.excerpt} />
+        <meta name="robots" content="noindex,nofollow,noarchive" />
         <meta property="og:title" content={meta.title} />
         <meta property="og:description" content={meta.excerpt} />
         <meta property="og:type" content="article" />
@@ -479,28 +349,53 @@ function ProtectedPostGate({
   );
 }
 
-function BlogLoadingShell() {
+function BlogStateShell({
+  locale,
+  meta,
+  signalLabel,
+  statusText,
+  description,
+  error,
+  action,
+  isProtected = false,
+}: BlogShellProps) {
   const { isInverted } = useApp();
-  const tCommon = useTranslations('common');
   const [entered, setEntered] = useState(false);
 
   useEffect(() => {
-    const t = setTimeout(() => setEntered(true), 100);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setEntered(true), 100);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
     <div className={`${styles.pageWrapper} ${isInverted ? hudStyles.inverted : ''}`}>
-      <Head><title>{tCommon('loading')}</title></Head>
+      <Head>
+        <title>{`${meta.title} // Blog`}</title>
+        <meta name="description" content={meta.excerpt} />
+        {isProtected ? <meta name="robots" content="noindex,nofollow,noarchive" /> : null}
+        <HreflangLinks basePath={`/blog/${meta.slug}`} />
+      </Head>
       <div className={styles.mainContent}>
         <header className={`${styles.headerSection} ${entered ? styles.entered : ''}`}>
           <div className={styles.headerContent}>
-            <span className={styles.headerSignal}>{tCommon('signalFragment')}</span>
+            <span className={styles.headerSignal}>{signalLabel}</span>
+            <h1 className={styles.headerTitle}>{meta.title}</h1>
+            <div className={styles.headerMeta}>
+              {meta.date && <span className={styles.headerDate}>{meta.date}</span>}
+              {meta.readingMinutes > 0 ? <span className={styles.headerReadingTime}>{meta.readingMinutes}m</span> : null}
+            </div>
+            {description ? <p className={styles.headerExcerpt}>{description}</p> : null}
+            {error ? (
+              <div className={styles.articleLocaleErrorRow}>
+                <p className={accessStyles.error}>{error}</p>
+                {action}
+              </div>
+            ) : null}
           </div>
         </header>
         <section className={styles.contentSection}>
           <div className={styles.loadingIndicator}>
-            <span className={styles.loadingText}>{tCommon('decoding')}</span>
+            <span className={styles.loadingText}>{statusText}</span>
           </div>
         </section>
       </div>
@@ -516,24 +411,26 @@ function BlogDetailContent({
   translationStatus,
   actualLocale,
   originLocale,
+  viewState,
   selectedContentLocale,
-  setSelectedContentLocale,
   availableContentLocales,
   loadingLang,
   actualContentLocale,
   defaultContentLocale,
   updateContentLocaleQuery,
   loadError,
+  retryRequestedContentLocale,
 }: Omit<BlogPostPageProps, 'messages' | 'contentVariants' | 'access' | 'isProtected' | 'actualContentLocale' | 'mdxSource'> & {
   mdxSource: MDXRemoteSerializeResult;
+  viewState: BlogPostViewState;
   selectedContentLocale: BlogContentLocale;
-  setSelectedContentLocale: React.Dispatch<React.SetStateAction<BlogContentLocale>>;
   originLocale: Locale;
   loadingLang: BlogContentLocale | null;
   actualContentLocale: BlogContentLocale;
   defaultContentLocale: BlogContentLocale;
   updateContentLocaleQuery: (nextContentLocale: BlogContentLocale) => void;
   loadError: string;
+  retryRequestedContentLocale: () => void;
 }) {
   const { isInverted } = useApp();
   const { navigateTo } = useTransition();
@@ -680,19 +577,18 @@ function BlogDetailContent({
   ], [tNav]);
 
   const handleContentLocaleChange = useCallback((nextContentLocale: BlogContentLocale) => {
-    if (nextContentLocale === selectedContentLocale || loadingLang) return;
-    if (nextContentLocale === actualContentLocale) {
-      setSelectedContentLocale(nextContentLocale);
-      updateContentLocaleQuery(nextContentLocale);
+    if (loadingLang) {
+      return;
+    }
+    if (nextContentLocale === selectedContentLocale && viewState !== 'loadFailed') {
       return;
     }
     updateContentLocaleQuery(nextContentLocale);
   }, [
-    actualContentLocale,
     loadingLang,
     selectedContentLocale,
-    setSelectedContentLocale,
     updateContentLocaleQuery,
+    viewState,
   ]);
 
   return (
@@ -700,6 +596,7 @@ function BlogDetailContent({
       <Head>
         <title>{`${meta.title} // Blog`}</title>
         <meta name="description" content={meta.excerpt} />
+        {meta.access.mode === 'totp' ? <meta name="robots" content="noindex,nofollow,noarchive" /> : null}
         <meta property="og:title" content={meta.title} />
         <meta property="og:description" content={meta.excerpt} />
         <meta property="og:type" content="article" />
@@ -753,7 +650,19 @@ function BlogDetailContent({
                 ))}
               </div>
             )}
-            {loadError ? <p className={accessStyles.error}>{loadError}</p> : null}
+            {loadError ? (
+              <div className={styles.articleLocaleErrorRow}>
+                <p className={accessStyles.error}>{loadError}</p>
+                <button
+                  type="button"
+                  className={styles.articleLocaleRetry}
+                  onClick={retryRequestedContentLocale}
+                  disabled={Boolean(loadingLang)}
+                >
+                  {tCommon('retry')}
+                </button>
+              </div>
+            ) : null}
             {meta.tags.length > 0 && (
               <div className={styles.headerTags}>
                 {meta.tags.map((tag) => (
@@ -770,7 +679,7 @@ function BlogDetailContent({
           ref={(el) => { sectionRefs.current['content'] = el; }}
           data-nav-id="content"
         >
-          {(!titleDone || Boolean(loadingLang)) && (
+          {(!titleDone || viewState === 'loadingVariant') && (
             <div className={styles.loadingIndicator}>
               <span className={styles.loadingText}>{tCommon('decoding')}</span>
             </div>
@@ -781,7 +690,7 @@ function BlogDetailContent({
         </section>
 
         <footer
-          className={`${styles.footer} ${entered ? styles.entered : ''}`}
+          className={styles.footer}
           ref={(el) => { sectionRefs.current['end'] = el; }}
           data-nav-id="end"
         >
@@ -792,6 +701,7 @@ function BlogDetailContent({
             {prevPost ? (
               <Link
                 href={buildBlogPostHref(locale, prevPost.slug, defaultContentLocale)}
+                prefetch={prevPost.access.mode === 'public'}
                 className={`${styles.footerNavButton} ${styles.footerNavPrev}`}
                 onClick={(e) => { e.preventDefault(); navigateTo(buildBlogPostHref(locale, prevPost.slug, defaultContentLocale)); }}
                 data-cursor-label="PREVIOUS"
@@ -802,6 +712,7 @@ function BlogDetailContent({
             ) : (
               <Link
                 href={`/${locale}/blog`}
+                prefetch={false}
                 className={`${styles.footerNavButton} ${styles.footerNavPrev}`}
                 onClick={handleBack}
                 data-cursor-label="BACK"
@@ -813,6 +724,7 @@ function BlogDetailContent({
             {nextPost ? (
               <Link
                 href={buildBlogPostHref(locale, nextPost.slug, defaultContentLocale)}
+                prefetch={nextPost.access.mode === 'public'}
                 className={`${styles.footerNavButton} ${styles.footerNavNext}`}
                 onClick={(e) => { e.preventDefault(); navigateTo(buildBlogPostHref(locale, nextPost.slug, defaultContentLocale)); }}
                 data-cursor-label="NEXT"
@@ -823,6 +735,7 @@ function BlogDetailContent({
             ) : (
               <Link
                 href={`/${locale}/blog`}
+                prefetch={false}
                 className={`${styles.footerNavButton} ${styles.footerNavNext}`}
                 onClick={handleBack}
                 data-cursor-label="BACK"
@@ -890,7 +803,7 @@ export const getStaticProps: GetStaticProps<BlogPostPageProps> = async ({ params
         props: {
           locale,
           messages,
-          meta: metaResult.meta,
+          meta: getProtectedPostPublicMeta(metaResult.meta),
           mdxSource: null,
           allPosts,
           translationStatus: metaResult.translationStatus,
