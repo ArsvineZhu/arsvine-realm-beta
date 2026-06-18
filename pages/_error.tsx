@@ -26,9 +26,18 @@ AppErrorPage.getInitialProps = async (context: NextPageContext): Promise<AppErro
       : context.req?.url;
   const locale = resolveLocale(context.query?.locale, requestPath);
   const messages = await loadMessages(locale);
+  const normalizedStatusCode =
+    typeof errorProps.statusCode === 'number' && errorProps.statusCode >= 400
+      ? errorProps.statusCode
+      : context.err
+        ? typeof context.err.statusCode === 'number'
+          ? context.err.statusCode
+          : 500
+        : 404;
 
   return {
     ...errorProps,
+    statusCode: normalizedStatusCode,
     locale,
     messages,
   };
