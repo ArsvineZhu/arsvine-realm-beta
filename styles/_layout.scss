@@ -133,10 +133,7 @@
   --avatar-dy: 0px;
   --avatar-split: 0;
   filter:
-    grayscale(100%) brightness(0.8)
-    drop-shadow(0 0 5px rgba(0, 0, 0, 0.1))
-    drop-shadow(calc(var(--avatar-split) *  3px) 0 0 rgba(0, 220, 255, calc(var(--avatar-split) * 0.55)))
-    drop-shadow(calc(var(--avatar-split) * -3px) 0 0 rgba(255, 50, 180, calc(var(--avatar-split) * 0.55)));
+    grayscale(100%) brightness(0.8) drop-shadow(0 0 5px rgba(0, 0, 0, 0.1)) drop-shadow(calc(var(--avatar-split) * 3px) 0 0 rgba(0, 220, 255, calc(var(--avatar-split) * 0.55))) drop-shadow(calc(var(--avatar-split) * -3px) 0 0 rgba(255, 50, 180, calc(var(--avatar-split) * 0.55)));
   transition: transform 120ms ease-out;
   pointer-events: none;
   position: relative;
@@ -146,7 +143,8 @@
 
   // 触摸/无 hover 设备兜底：禁用视差与色散，回退到原始 filter 链。
   // 与 LeftPanel.tsx 中的 isDesktop 早返回构成双重保险。
-  @media (hover: none), (pointer: coarse) {
+  @media (hover: none),
+  (pointer: coarse) {
     --avatar-dx: 0px;
     --avatar-dy: 0px;
     --avatar-split: 0;
@@ -214,7 +212,7 @@
   -moz-user-select: none;
   -ms-user-select: none;
 
-  > * {
+  >* {
     pointer-events: auto;
   }
 
@@ -587,10 +585,13 @@
 }
 
 @keyframes batteryAttractPulse {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 0 0 rgba(178, 242, 187, 0.7);
     transform: translateY(-50%) scaleX(1);
   }
+
   50% {
     box-shadow: 0 0 6px 2px rgba(178, 242, 187, 0);
     transform: translateY(-50%) scaleX(1.4);
@@ -612,12 +613,10 @@
   .logoContainer {
     // 反转模式下的基础灰阶变深，但保留视差/色散：扩展 filter 链而不是覆盖它。
     filter:
-      grayscale(100%) brightness(0.3)
-      drop-shadow(0 0 5px rgba(0, 0, 0, 0.15))
-      drop-shadow(calc(var(--avatar-split) *  3px) 0 0 rgba(0, 220, 255, calc(var(--avatar-split) * 0.55)))
-      drop-shadow(calc(var(--avatar-split) * -3px) 0 0 rgba(255, 50, 180, calc(var(--avatar-split) * 0.55)));
+      grayscale(100%) brightness(0.3) drop-shadow(0 0 5px rgba(0, 0, 0, 0.15)) drop-shadow(calc(var(--avatar-split) * 3px) 0 0 rgba(0, 220, 255, calc(var(--avatar-split) * 0.55))) drop-shadow(calc(var(--avatar-split) * -3px) 0 0 rgba(255, 50, 180, calc(var(--avatar-split) * 0.55)));
 
-    @media (hover: none), (pointer: coarse) {
+    @media (hover: none),
+    (pointer: coarse) {
       filter: grayscale(100%) brightness(0.3) drop-shadow(0 0 5px rgba(0, 0, 0, 0.15));
     }
   }
@@ -852,20 +851,30 @@
 }
 
 // --- 开往链接 ---
-.travellingLink {
+.travelStatusRow {
   position: absolute;
   bottom: 9%;
   left: 15%;
-  width: min(270px, 18%);
-  display: inline-block;
+  right: 20%;
+  display: flex;
+  align-items: stretch;
+  gap: clamp(8px, 1.2vw, 20px);
+  z-index: 5;
+  pointer-events: none;
+}
+
+.travellingLink {
+  width: min(214px, 21.5%);
+  min-width: 172px;
+  aspect-ratio: 4 / 1;
+  flex: 0 0 auto;
+  display: block;
   opacity: 0;
   transition: opacity 0.4s ease;
-  pointer-events: none;
-  z-index: 5;
+  pointer-events: auto;
 
   .leftPanel.animated & {
     opacity: 0.45;
-    pointer-events: auto;
     transition-delay: 3s;
   }
 
@@ -876,13 +885,127 @@
   img {
     display: block;
     width: 100%;
-    height: auto;
+    height: 100%;
     transition: filter 0.5s ease-in-out;
   }
 
   // 反色模式下，浅灰图形反成深灰，保持在浅色背景上的可见度
   .inverted & img {
     filter: invert(1);
+  }
+}
+
+.artNewsLink {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 0.8vw, 14px);
+  padding: 0 clamp(14px, 1.2vw, 20px);
+  border: 1px solid var(--ark-border);
+  background:
+    linear-gradient(90deg, rgba(var(--ark-highlight-green-rgb), 0.06) 0%, rgba(var(--ark-highlight-green-rgb), 0) 24%),
+    rgba(var(--ark-dark-blue-rgb), 0.28);
+  color: var(--ark-text-secondary);
+  font-family: var(--font-hud);
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+  letter-spacing: 0.5px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: auto;
+  transition:
+    opacity 0.4s ease,
+    border-color 0.3s ease,
+    background-color 0.3s ease,
+    box-shadow 0.3s ease;
+
+  .leftPanel.animated & {
+    opacity: 0.45;
+    transition-delay: 3s;
+  }
+
+  &:hover {
+    opacity: 1;
+    border-color: rgba(var(--ark-highlight-green-rgb), 0.48);
+    background:
+      linear-gradient(90deg, rgba(var(--ark-highlight-green-rgb), 0.1) 0%, rgba(var(--ark-highlight-green-rgb), 0.02) 28%),
+      rgba(var(--ark-dark-blue-rgb), 0.36);
+    box-shadow: 0 0 14px rgba(var(--ark-highlight-green-rgb), 0.08);
+
+    .artNewsTickerTrack {
+      animation-play-state: paused;
+    }
+
+    .artNewsStatusDot {
+      transform: scale(1.04);
+      box-shadow: 0 0 18px rgba(var(--ark-highlight-green-rgb), 0.34);
+    }
+  }
+}
+
+.artNewsStatusDot {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+  border-radius: 50%;
+  background: var(--ark-highlight-green);
+  box-shadow:
+    0 0 0 8px rgba(var(--ark-highlight-green-rgb), 0.08),
+    0 0 10px rgba(var(--ark-highlight-green-rgb), 0.14);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.artNewsTickerViewport {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.artNewsTickerTrack {
+  display: inline-flex;
+  align-items: center;
+  min-width: max-content;
+  will-change: transform;
+  animation: artNewsTicker 22s linear infinite;
+}
+
+.artNewsTickerItem {
+  display: inline-flex;
+  align-items: center;
+  min-width: max-content;
+  padding-right: 40px;
+}
+
+.artNewsBreaking {
+  margin-right: 0.6ch;
+  color: var(--ark-highlight-green);
+  text-shadow: 0 0 8px rgba(var(--ark-highlight-green-rgb), 0.14);
+}
+
+.artNewsMessage {
+  color: var(--ark-text-secondary);
+}
+
+.artNewsExternalIcon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  opacity: 0.92;
+  overflow: visible;
+
+  path {
+    stroke: var(--ark-highlight-green);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .artNewsTickerTrack {
+    animation: none;
   }
 }
 
@@ -964,6 +1087,7 @@
           0s;
         }
       }
+
       // standalone 组（第二个标题之后 3 项，DOM 位置 8~10）
       @for $i from 8 through 10 {
         &:nth-child(#{$i}) {
@@ -980,10 +1104,21 @@
     .leftNavGroupLabel {
       opacity: 0.5;
       transform: translateX(0);
+
       // 第一个标题在 DOM 第 1 位
-      &:nth-child(1) { transition-delay: 0s, 0s, 0s, 0s, 0s, 0s; }
+      &:nth-child(1) {
+        transition-delay: 0s, 0s, 0s, 0s, 0s, 0s;
+      }
+
       // 第二个标题在 DOM 第 7 位
-      &:nth-child(7) { transition-delay: #{5 * 0.06}s, #{5 * 0.06}s, 0s, 0s, 0s, 0s; }
+      &:nth-child(7) {
+        transition-delay: #{5 * 0.06}s,
+        #{5 * 0.06}s,
+        0s,
+        0s,
+        0s,
+        0s;
+      }
     }
   }
 }
@@ -1020,6 +1155,7 @@
       0s;
     }
   }
+
   // standalone 组（DOM 位置 8~10，delay 0.24~0.32s）
   @for $i from 8 through 10 {
     &:nth-child(#{$i}) {
@@ -1262,14 +1398,39 @@
     }
   }
 
+  .travelStatusRow {
+    position: relative;
+    order: 9;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    max-width: none;
+    margin-bottom: 8px;
+    gap: 10px;
+    flex-direction: column;
+    flex-shrink: 0;
+    pointer-events: auto;
+  }
+
   // 开往链接: 流式布局
   .travellingLink {
-    position: relative;
-    bottom: auto;
-    left: auto;
-    order: 9;
-    margin-bottom: 8px;
-    flex-shrink: 0;
+    width: 100%;
+    max-width: 240px;
+    min-width: 0;
+    opacity: 0.5 !important;
+    pointer-events: auto !important;
+
+    .leftPanel.animated & {
+      transition-delay: 0s;
+    }
+  }
+
+  .artNewsLink {
+    width: 100%;
+    min-height: 56px;
+    padding: 0 16px;
+    font-size: var(--fs-sm);
     opacity: 0.5 !important;
     pointer-events: auto !important;
 
@@ -1306,15 +1467,33 @@
   }
 
   .travellingLink {
-    order: 9;
-    margin-top: 4px;
     width: 100%;
     max-width: 240px;
+    min-width: 0;
+  }
 
-    img {
-      width: 60%;
-      height: auto;
-    }
+  .travelStatusRow {
+    margin-top: 4px;
+    margin-bottom: 0;
+  }
+
+  .artNewsLink {
+    min-height: 52px;
+    font-size: var(--fs-sm);
+    gap: 12px;
+    padding: 0 14px;
+  }
+
+  .artNewsStatusDot {
+    width: 10px;
+    height: 10px;
+    flex-basis: 10px;
+  }
+
+  .artNewsExternalIcon {
+    width: 14px;
+    height: 14px;
+    flex-basis: 14px;
   }
 }
 

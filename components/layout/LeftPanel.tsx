@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import styles from '../../styles/Home.module.scss';
 import ActivationLever from '../interactive/ActivationLever';
 import { useResponsive } from '../../hooks/useMediaQuery';
+import type { Locale } from '../../i18n/config';
 import type { EnvData } from '../../types';
 
 // --- 渐变装饰条颜色映射 ---
@@ -23,6 +24,11 @@ const RAIN_SCORES: Record<string, number> = {
 };
 const GRAY_BASE = [36, 24, 19, 12, 5];
 const GRAY_COLORS = ['#333333', '#444444', '#666666', '#888888', '#aaaaaa'];
+const TRAVELLING_LANG_MAP: Record<Locale, string> = {
+  en: 'en',
+  'zh-CN': 'zh-CN',
+  'zh-TW': 'zh-TW',
+};
 
 function computeBlocks(envData: EnvData | null) {
   if (!envData) {
@@ -55,6 +61,7 @@ function computeBlocks(envData: EnvData | null) {
 }
 
 export default function LeftPanel({
+  locale,
   leftPanelAnimated,
   mainVisible,
   leversVisible,
@@ -81,6 +88,13 @@ export default function LeftPanel({
   envData = null as EnvData | null,
 }) {
   const tNav = useTranslations('mainNav');
+  const tSite = useTranslations('pages.site');
+  const travellingUrl = `https://www.travellings.cn/arsvine?lang=${TRAVELLING_LANG_MAP[locale]}`;
+  const travellingLabel = tSite('travellingLabel');
+  const artNewsUrl = 'https://arts.arsvine.com';
+  const artNewsLabel = tSite('artNewsLabel');
+  const artNewsMessage = tSite('artNewsMessage', { url: artNewsUrl });
+  const artNewsCursorLabel = tSite('artNewsCursor');
   const chargeLeverLabel = isTesseractActivated ? 'CHARGING' : 'START CHARGE';
   const dischargeLeverLabel = isDischarging
     ? 'DISCHARGING'
@@ -292,15 +306,53 @@ export default function LeftPanel({
             />
           ))}
       </div>
-      <a
-        href="https://www.travellings.cn/go.html"
-        target="_blank"
-        rel="noopener noreferrer"
-        className={styles.travellingLink}
-        aria-label="Travelling"
-      >
-        <img src="/travel.svg" alt="Travelling" draggable={false} />
-      </a>
+      <div className={styles.travelStatusRow}>
+        <a
+          href={travellingUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.travellingLink}
+          aria-label={travellingLabel}
+          data-cursor-label={travellingLabel}
+        >
+          <img src="/travel.svg" alt={travellingLabel} draggable={false} />
+        </a>
+        <a
+          href={artNewsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.artNewsLink}
+          aria-label={`${artNewsLabel} ${artNewsMessage}`}
+          data-cursor-label={artNewsCursorLabel}
+        >
+          <span className={styles.artNewsStatusDot} aria-hidden="true"></span>
+          <span className={styles.artNewsTickerViewport}>
+            <span className={styles.artNewsTickerTrack}>
+              {[0, 1].map((itemIndex) => (
+                <span
+                  key={itemIndex}
+                  className={styles.artNewsTickerItem}
+                  aria-hidden={itemIndex === 1 ? 'true' : undefined}
+                >
+                  <span className={styles.artNewsBreaking}>{artNewsLabel}</span>
+                  <span className={styles.artNewsMessage}>{artNewsMessage}</span>
+                </span>
+              ))}
+            </span>
+          </span>
+          <svg
+            className={styles.artNewsExternalIcon}
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M13.5 6H20.25V12.75M20.25 6L10.5 15.75M17.25 13.5V18.375C17.25 18.9963 16.7463 19.5 16.125 19.5H5.625C5.00368 19.5 4.5 18.9963 4.5 18.375V7.875C4.5 7.25368 5.00368 6.75 5.625 6.75H10.5"
+              vectorEffect="non-scaling-stroke"
+            />
+          </svg>
+        </a>
+      </div>
     </div>
   );
 }

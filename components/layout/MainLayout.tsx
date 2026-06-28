@@ -258,6 +258,7 @@ export default function MainLayout({ children, appLocale }: MainLayoutProps) {
               locale={locale}
             />
             <LeftPanel
+              locale={locale}
               leftPanelAnimated={localPanelAnimated}
               mainVisible={mainVisible}
               leversVisible={localLeversVisible}

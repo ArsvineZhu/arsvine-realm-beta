@@ -104,7 +104,11 @@
       "rssDescription": "個人部落格 — 探索技術、創作與生活的領域。",
       "loadingSubtitle": "我們的命運在此刻交織",
       "taglinePrimary": "Я бы хотела жить с Вами в маленьком городе, Где вечные сумерки и вечные колокола.",
-      "taglineSecondary": "我想和你一起生活，在小城，那裡有永恆的黃昏和永恆的鐘聲。"
+      "taglineSecondary": "我想和你一起生活，在小城，那裡有永恆的黃昏和永恆的鐘聲。",
+      "travellingLabel": "Travelling",
+      "artNewsLabel": "BREAKING NEWS:",
+      "artNewsMessage": "ART NODE ({url}) IS NOW ONLINE",
+      "artNewsCursor": "ART NODE"
     },
     "content": {
       "description": "Portfolio — Explore"

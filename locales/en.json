@@ -104,7 +104,11 @@
       "rssDescription": "Personal blog — Exploring the realms of technology, creativity, and life.",
       "loadingSubtitle": "OUR DESTINIES ENTWINE AT THIS MOMENT",
       "taglinePrimary": "I would like to live with you in a small town, where there are eternal twilights and eternal bells.",
-      "taglineSecondary": "Я бы хотела жить с Вами в маленьком городе, Где вечные сумерки и вечные колокола."
+      "taglineSecondary": "Я бы хотела жить с Вами в маленьком городе, Где вечные сумерки и вечные колокола.",
+      "travellingLabel": "Travelling",
+      "artNewsLabel": "BREAKING NEWS:",
+      "artNewsMessage": "ART NODE ({url}) IS NOW ONLINE",
+      "artNewsCursor": "ART NODE"
     },
     "content": {
       "description": "Portfolio — Explore"

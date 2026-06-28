@@ -65,6 +65,17 @@
   }
 }
 
+@keyframes artNewsTicker {
+  0%,
+  14% {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(calc(-50% - 24px));
+  }
+}
+
 // 边框展开动画
 @keyframes expandBorder {
   0% {
