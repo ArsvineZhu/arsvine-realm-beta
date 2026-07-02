@@ -2,6 +2,17 @@ import { createContext, useContext, useCallback, useRef, useEffect } from 'react
 import { useRouter } from 'next/router';
 import { useApp } from './AppContext';
 import { useResponsive } from '../hooks/useMediaQuery';
+import {
+  clearPendingContentHashNavigation,
+  CONTENT_HASH_SCROLL_COMPLETE_EVENT,
+  CONTENT_HASH_SCROLL_EVENT,
+  createContentHashNavigationRequest,
+  type ContentHashNavigationRequest,
+  classifyRoutePathname,
+  getContentSectionHashFromUrl,
+  resolveContentHashTransitionMode,
+  setPendingContentHashNavigation,
+} from '../lib/content-hash-navigation';
 
 interface TransitionContextValue {
   navigateTo: (url: string, options?: { scroll?: boolean }) => void;
@@ -63,7 +74,6 @@ const DIAG_COLLAPSE_OPTS: KeyframeAnimationOptions = {
   easing: 'ease-in',
   fill: 'forwards',
 };
-
 const checkMobile = () => {
   // fallback for非 hook 上下文（handleLoadingComplete 等）—— 主流程已走 useResponsive。
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;
@@ -113,7 +123,69 @@ export function TransitionProvider({ children, pageWrapperRef }: TransitionProvi
     }
   };
 
+  const dispatchContentHashScroll = useCallback((request: ContentHashNavigationRequest | null) => {
+    if (!request || typeof window === 'undefined') {
+      return;
+    }
+
+    window.dispatchEvent(new CustomEvent(CONTENT_HASH_SCROLL_EVENT, {
+      detail: request,
+    }));
+  }, []);
+
+  const revealAfterContentHashAligned = useCallback((
+    request: ContentHashNavigationRequest,
+    onAligned: () => void,
+  ) => {
+    if (typeof window === 'undefined') {
+      clearPendingContentHashNavigation();
+      onAligned();
+      return;
+    }
+
+    let settled = false;
+    let fallbackId: number | null = null;
+
+    const cleanup = () => {
+      window.removeEventListener(CONTENT_HASH_SCROLL_COMPLETE_EVENT, handleAligned as EventListener);
+      if (fallbackId !== null) {
+        window.clearTimeout(fallbackId);
+        fallbackId = null;
+      }
+      pendingCleanupsRef.current = pendingCleanupsRef.current.filter((item) => item !== cleanup);
+    };
+
+    const settle = () => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      cleanup();
+      clearPendingContentHashNavigation();
+      onAligned();
+    };
+
+    const handleAligned = (event: Event) => {
+      const detail = (event as CustomEvent<ContentHashNavigationRequest>).detail;
+      if (detail?.hash !== request.hash || detail?.requestId !== request.requestId) {
+        return;
+      }
+      settle();
+    };
+
+    window.addEventListener(CONTENT_HASH_SCROLL_COMPLETE_EVENT, handleAligned as EventListener);
+    fallbackId = window.setTimeout(settle, 900);
+    pendingCleanupsRef.current.push(cleanup);
+    dispatchContentHashScroll(request);
+  }, [dispatchContentHashScroll]);
+
   const navigateTo = useCallback((url: string, options?: { scroll?: boolean }) => {
+    const contentHashTransitionMode = resolveContentHashTransitionMode(router.pathname, url);
+    if (contentHashTransitionMode === 'same-page') {
+      router.push(url, undefined, { scroll: false, ...options });
+      return;
+    }
+
     if (isTransitioning.current) {
       // If returning to the same URL we are currently transitioning to, ignore.
       queuedNav.current = { url, options };
@@ -129,11 +201,16 @@ export function TransitionProvider({ children, pageWrapperRef }: TransitionProvi
     isTransitioning.current = true;
     queuedNav.current = null;
     cancelActiveAnim();
+    const targetContentHash = getContentSectionHashFromUrl(url);
+    const contentHashRequest = targetContentHash
+      ? createContentHashNavigationRequest(targetContentHash)
+      : null;
+    setPendingContentHashNavigation(contentHashRequest);
     // 新一轮转场开始前，清掉上一轮遗留的兜底 timer / 监听（理论上应已自清，
     // 这里是防御性保险），避免上一轮 onFadeIn 在新 wrapper 状态上误触发。
     runPendingCleanups();
-    // Home / 跳回 home 的判定：路由模板是 /[locale]
-    const currentlyHome = router.pathname === '/[locale]';
+    const currentRouteKind = classifyRoutePathname(router.pathname);
+    const goingContentHashCrossPage = contentHashTransitionMode === 'cross-page';
     // 目标是 home 的判定：URL 形如 /<locale> 或 /<locale>/
     const goingHome = /^\/[A-Za-z-]+\/?$/.test(url);
     // 目标是博客详情页：URL 形如 /<locale>/blog/<slug>
@@ -177,7 +254,7 @@ export function TransitionProvider({ children, pageWrapperRef }: TransitionProvi
       }).catch(() => {});
     };
 
-    if (currentlyHome && !goingHome) {
+    if (currentRouteKind === 'home' && !goingHome) {
       if (mobile) {
         // Mobile forward: diagonal collapse home → push → diagonal expand content
         retractColumns(() => {});
@@ -187,16 +264,46 @@ export function TransitionProvider({ children, pageWrapperRef }: TransitionProvi
           anim.cancel();
           activeAnim.current = null;
           wrapper.style.clipPath = 'inset(100%)';
-          pushThen(url, wapiDiagExpand, options);
+          pushThen(url, () => {
+            if (goingContentHashCrossPage && contentHashRequest) {
+              revealAfterContentHashAligned(contentHashRequest, wapiDiagExpand);
+              return;
+            }
+
+            wapiDiagExpand();
+          }, options);
         }).catch(() => {});
       } else {
         // Desktop forward: retract columns → hide wrapper → push → slide in
         retractColumns(() => {
           wrapper.style.opacity = '0';
-          pushThen(url, wapiSlideIn, options);
+          pushThen(url, () => {
+            if (goingContentHashCrossPage && contentHashRequest) {
+              revealAfterContentHashAligned(contentHashRequest, wapiSlideIn);
+              return;
+            }
+
+            wapiSlideIn();
+          }, options);
         });
       }
-    } else if (!currentlyHome && goingHome) {
+    } else if (currentRouteKind !== 'home' && goingContentHashCrossPage) {
+      const outAnim = wrapper.animate(SLIDE_OUT_KF, SLIDE_OUT_OPTS);
+      activeAnim.current = outAnim;
+      outAnim.finished.then(() => {
+        outAnim.cancel();
+        activeAnim.current = null;
+        wrapper.style.opacity = '0';
+        pushThen(url, () => {
+          if (contentHashRequest) {
+            revealAfterContentHashAligned(contentHashRequest, wapiSlideIn);
+            return;
+          }
+
+          wapiSlideIn();
+        }, options);
+      }).catch(() => {});
+    } else if (currentRouteKind !== 'home' && goingHome) {
       if (mobile) {
         // Mobile back: diagonal collapse content → push home → diagonal expand home
         const anim = wrapper.animate(DIAG_COLLAPSE_KF, DIAG_COLLAPSE_OPTS);
@@ -272,7 +379,15 @@ export function TransitionProvider({ children, pageWrapperRef }: TransitionProvi
         pushThen(url, wapiSlideIn, options);
       }).catch(() => {});
     }
-  }, [router, pageWrapperRef, retractColumns, expandColumns, runPendingCleanups, hookIsMobile]);
+  }, [
+    router,
+    pageWrapperRef,
+    retractColumns,
+    expandColumns,
+    runPendingCleanups,
+    hookIsMobile,
+    revealAfterContentHashAligned,
+  ]);
 
   // Keep navigateToRef updated
   useEffect(() => {
@@ -283,6 +398,7 @@ export function TransitionProvider({ children, pageWrapperRef }: TransitionProvi
   // wrapper / state 上触发副作用（"导航卡死 / 双闪烁"竞态来源之一）。
   useEffect(() => {
     return () => {
+      clearPendingContentHashNavigation();
       runPendingCleanups();
       cancelActiveAnim();
     };

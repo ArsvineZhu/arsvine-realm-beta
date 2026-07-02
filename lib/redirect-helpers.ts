@@ -1,4 +1,4 @@
-import type { GetServerSideProps, Redirect } from 'next';
+import type { GetServerSideProps, GetStaticProps, Redirect } from 'next';
 import { defaultLocale, isLocale, type Locale } from '../i18n/config';
 
 /**
@@ -60,6 +60,15 @@ export function buildLocaleRedirectPath(
  */
 export function makeLocaleRedirectGSSP(options: Omit<LocaleRedirectOptions, 'preserveQuery'>) {
   const handler: GetServerSideProps = async ({ params }) =>
+    localeAwareRedirect(params, options);
+  return handler;
+}
+
+/**
+ * 与 makeLocaleRedirectGSSP 相同，但用于静态路由别名页。
+ */
+export function makeLocaleRedirectGSP(options: Omit<LocaleRedirectOptions, 'preserveQuery'>) {
+  const handler: GetStaticProps = async ({ params }) =>
     localeAwareRedirect(params, options);
   return handler;
 }

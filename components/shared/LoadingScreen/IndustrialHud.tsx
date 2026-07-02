@@ -97,7 +97,7 @@ const IndustrialHud = forwardRef<IndustrialHudRef>((_, ref) => {
         </div>
         <div className={`${styles.hud_element} ${styles.bottom_left}`}>
           <div className={styles.hud_line}></div>
-          <div className={styles.hud_text}>ID-1A1A1A</div>
+          <div className={styles.hud_text}>ID-E38DA0</div>
         </div>
         <div className={`${styles.hud_element} ${styles.bottom_right}`}>
           <div className={styles.hud_line}></div>

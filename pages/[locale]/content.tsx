@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import type { GetStaticPaths, GetStaticProps } from 'next';
@@ -26,9 +26,6 @@ import { siteConfig } from '../../data/site';
 import { loadProjects, loadLife, loadExperience, loadSkills, loadMessages } from '../../lib/i18n-data';
 import { locales, type Locale } from '../../i18n/config';
 import type { BlogPostMeta, Project, LifeItem, ExperienceItem, SkillCategory } from '../../types';
-
-const useIsomorphicLayoutEffect =
-  typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 type DetailMode =
   | { type: 'none' }
@@ -105,16 +102,6 @@ export default function ContentPage({
   const scrollPositionRef = useRef(0);
 
   const isDetailMounted = detail.type !== 'none';
-
-  useIsomorphicLayoutEffect(() => {
-    const hash = window.location.hash.replace('#', '');
-    if (!hash) return;
-
-    const el = document.getElementById(`section-${hash}`);
-    if (el) {
-      el.scrollIntoView({ block: 'start' });
-    }
-  }, []);
 
   useEffect(() => {
     return () => { setBackOverride(null); };

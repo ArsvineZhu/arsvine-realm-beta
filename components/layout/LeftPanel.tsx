@@ -91,9 +91,9 @@ export default function LeftPanel({
   const tSite = useTranslations('pages.site');
   const travellingUrl = `https://www.travellings.cn/arsvine?lang=${TRAVELLING_LANG_MAP[locale]}`;
   const travellingLabel = tSite('travellingLabel');
-  const artNewsUrl = 'https://arts.arsvine.com';
+  const artNewsUrl = 'https://mayrain.arsvine.com';
   const artNewsLabel = tSite('artNewsLabel');
-  const artNewsMessage = tSite('artNewsMessage', { url: artNewsUrl });
+  const artNewsMessage = tSite('artNewsMessage');
   const artNewsCursorLabel = tSite('artNewsCursor');
   const chargeLeverLabel = isTesseractActivated ? 'CHARGING' : 'START CHARGE';
   const dischargeLeverLabel = isDischarging
@@ -231,7 +231,7 @@ export default function LeftPanel({
       <div className={`${styles.globalBackButtonDivider} ${showBackAndNav ? styles.visible : ''}`}></div>
       <div className={`${styles.leftNavLinks} ${showBackAndNav ? styles.visible : ''}`}>
         {navLinks.map((link, i) => (
-          <Fragment key={link.hash}>
+          <Fragment key={link.href}>
             {i === 0 && (
               <div
                 role="separator"

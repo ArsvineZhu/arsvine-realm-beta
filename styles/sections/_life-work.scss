@@ -218,6 +218,8 @@
 
 .workTabButtons {
   display: flex;
+  width: 100%;
+  align-self: stretch;
   gap: 1rem;
   margin-bottom: 2rem;
   border-bottom: 1px solid var(--ark-border);
@@ -259,6 +261,8 @@
 
 .workContentArea {
   position: relative;
+  width: 100%;
+  align-self: stretch;
 }
 
 .workTabContent {

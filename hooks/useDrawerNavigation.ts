@@ -3,8 +3,9 @@ import type { Locale } from '../i18n/config';
 
 interface NavLink {
   label: string;
-  hash: string;
+  href: string;
   group: 'content' | 'standalone';
+  hash?: string;
 }
 
 const commonLabelFallbacks: Record<Locale, Record<'openMenu' | 'closeMenu', string>> = {
@@ -44,15 +45,15 @@ export default function useDrawerNavigation({
   }, []);
 
   const navLinks = useMemo<NavLink[]>(() => ([
-    { label: tNav('works'), hash: 'works', group: 'content' },
-    { label: tNav('experience'), hash: 'experience', group: 'content' },
-    { label: tNav('blog'), hash: 'blog', group: 'content' },
-    { label: tNav('life'), hash: 'life', group: 'content' },
-    { label: tNav('contact'), hash: 'contact', group: 'content' },
-    { label: tNav('tweets'), hash: 'tweets', group: 'standalone' },
-    { label: tNav('about'), hash: 'about', group: 'standalone' },
-    { label: tNav('friends'), hash: 'friends', group: 'standalone' },
-  ]), [tNav]);
+    { label: tNav('works'), href: `/${locale}/content#works`, hash: 'works', group: 'content' },
+    { label: tNav('experience'), href: `/${locale}/content#experience`, hash: 'experience', group: 'content' },
+    { label: tNav('blog'), href: `/${locale}/content#blog`, hash: 'blog', group: 'content' },
+    { label: tNav('life'), href: `/${locale}/content#life`, hash: 'life', group: 'content' },
+    { label: tNav('contact'), href: `/${locale}/content#contact`, hash: 'contact', group: 'content' },
+    { label: tNav('tweets'), href: `/${locale}/tweets`, group: 'standalone' },
+    { label: tNav('about'), href: `/${locale}/content#about`, hash: 'about', group: 'standalone' },
+    { label: tNav('friends'), href: `/${locale}/friends`, group: 'standalone' },
+  ]), [locale, tNav]);
 
   const resolveCommonLabel = useCallback((key: 'openMenu' | 'closeMenu') => {
     const translated = tCommon(key);

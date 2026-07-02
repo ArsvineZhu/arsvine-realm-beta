@@ -15,6 +15,13 @@ import useRouteLoadingKind from '../../hooks/useRouteLoadingKind';
 import useStandalonePanelState from '../../hooks/useStandalonePanelState';
 import { setHudTypingOverlaySuppressed, setHudTypingRouteEnabled } from '../../lib/hud-typing-visibility';
 import { CONTENT_DETAIL_EXIT_DELAY_MS } from '../../lib/ui-timings';
+import {
+  clearPendingContentHashNavigation,
+  CONTENT_HASH_SCROLL_EVENT,
+  CONTENT_HASH_SCROLL_COMPLETE_EVENT,
+  type ContentHashNavigationRequest,
+  hasPendingContentHashNavigation,
+} from '../../lib/content-hash-navigation';
 import { resolveLocale, type Locale } from '../../i18n/config';
 
 import HomeLoadingScreen from '../shared/HomeLoadingScreen';
@@ -100,6 +107,7 @@ export default function MainLayout({ children, appLocale }: MainLayoutProps) {
   const powerDisplayRef = useRef<HTMLDivElement | null>(null);
   const batteryIconRef = useRef<HTMLDivElement | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const pendingContentHashCleanupRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (isHome && forceHomeSection) {
@@ -150,15 +158,98 @@ export default function MainLayout({ children, appLocale }: MainLayoutProps) {
     scrollContainerRef.current = element;
   }, []);
 
-  const handleLeftNavLinkClick = (link: { label: string; hash: string; group: 'content' | 'standalone' }) => {
+  const scheduleContentHashScroll = useCallback((request: string | ContentHashNavigationRequest) => {
+    const target = typeof request === 'string'
+      ? { hash: request, requestId: null }
+      : request;
+    let frameId = 0;
+    let timeoutId = 0;
+    let attempts = 0;
+    let cancelled = false;
+    let completed = false;
+
+    const getTargetOffset = () => {
+      if (!isMobile) {
+        return 0;
+      }
+
+      const rawOffset = getComputedStyle(document.documentElement)
+        .getPropertyValue('--mobile-section-scroll-offset')
+        .trim()
+        .replace('px', '');
+      const parsed = Number.parseFloat(rawOffset);
+      return Number.isFinite(parsed) ? parsed : 0;
+    };
+
+    const finish = () => {
+      if (cancelled || completed) {
+        return;
+      }
+
+      completed = true;
+      if (target.requestId) {
+        window.dispatchEvent(new CustomEvent(CONTENT_HASH_SCROLL_COMPLETE_EVENT, {
+          detail: target,
+        }));
+        clearPendingContentHashNavigation();
+      }
+    };
+
+    const align = () => {
+      if (cancelled) {
+        return;
+      }
+
+      const element = document.getElementById(`section-${target.hash}`);
+      const scrollContainer = scrollContainerRef.current;
+      const maxAttempts = 6;
+
+      if (!element || !scrollContainer) {
+        if (attempts < maxAttempts) {
+          attempts += 1;
+          timeoutId = window.setTimeout(() => {
+            frameId = window.requestAnimationFrame(align);
+          }, 50);
+        } else {
+          finish();
+        }
+        return;
+      }
+
+      element.scrollIntoView({ behavior: 'auto', block: 'start' });
+      attempts += 1;
+
+      const top = element.getBoundingClientRect().top;
+      const expectedTop = getTargetOffset();
+      if (attempts < maxAttempts && Math.abs(top - expectedTop) > 8) {
+        timeoutId = window.setTimeout(() => {
+          frameId = window.requestAnimationFrame(align);
+        }, 50);
+        return;
+      }
+
+      finish();
+    };
+
+    frameId = window.requestAnimationFrame(() => {
+      frameId = window.requestAnimationFrame(align);
+    });
+
+    return () => {
+      cancelled = true;
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+      }
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, [isMobile]);
+
+  const handleLeftNavLinkClick = (link: { label: string; href: string; group: 'content' | 'standalone'; hash?: string }) => {
     closeDrawer();
 
-    if (link.group === 'standalone') {
-      navigateTo(`/${locale}/${link.hash}`);
-      return;
-    }
-
-    if (isContentPage) {
+    if (link.hash && isContentPage) {
       if (isDetailOpen()) {
         handleBack();
         window.setTimeout(() => {
@@ -173,9 +264,10 @@ export default function MainLayout({ children, appLocale }: MainLayoutProps) {
           el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       }
-    } else {
-      navigateTo(`/${locale}/content#${link.hash}`);
+      return;
     }
+
+    navigateTo(link.href);
   };
 
   const routeLoadingText = routeLoadingState.kind === 'tweets'
@@ -198,6 +290,38 @@ export default function MainLayout({ children, appLocale }: MainLayoutProps) {
       window.dispatchEvent(new Event('arsvine:cursor-targets-dirty'));
     }
   }, [mainVisible]);
+
+  useEffect(() => {
+    const handleScrollEvent = (event: Event) => {
+      const request = (event as CustomEvent<ContentHashNavigationRequest>).detail;
+      if (!request?.hash) {
+        return;
+      }
+
+      pendingContentHashCleanupRef.current?.();
+      pendingContentHashCleanupRef.current = scheduleContentHashScroll(request);
+    };
+
+    window.addEventListener(CONTENT_HASH_SCROLL_EVENT, handleScrollEvent as EventListener);
+    return () => {
+      pendingContentHashCleanupRef.current?.();
+      pendingContentHashCleanupRef.current = null;
+      window.removeEventListener(CONTENT_HASH_SCROLL_EVENT, handleScrollEvent as EventListener);
+    };
+  }, [scheduleContentHashScroll]);
+
+  useEffect(() => {
+    if (router.pathname !== '/[locale]/content') {
+      return;
+    }
+
+    const hash = router.asPath.split('#')[1];
+    if (!hash || hasPendingContentHashNavigation(hash)) {
+      return;
+    }
+
+    return scheduleContentHashScroll(hash);
+  }, [router.asPath, router.pathname, scheduleContentHashScroll]);
 
   return (
     <LayoutAnchorsContext.Provider

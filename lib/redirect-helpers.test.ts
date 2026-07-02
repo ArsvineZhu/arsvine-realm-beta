@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildLocaleRedirectPath,
   localeAwareRedirect,
+  makeLocaleRedirectGSP,
   makeLocaleRedirectGSSP,
 } from './redirect-helpers';
 
@@ -62,5 +63,16 @@ describe('makeLocaleRedirectGSSP', () => {
     });
     const result = await handler({ params: { locale: 'en' } } as never);
     expect(result).toEqual({ redirect: { destination: '/en/copyright', permanent: true } });
+  });
+});
+
+describe('makeLocaleRedirectGSP', () => {
+  it('returns a GetStaticProps handler that resolves locale then redirects', async () => {
+    const handler = makeLocaleRedirectGSP({
+      destination: (l) => `/${l}/content#life`,
+      permanent: false,
+    });
+    const result = await handler({ params: { locale: 'zh-TW' } } as never);
+    expect(result).toEqual({ redirect: { destination: '/zh-TW/content#life', permanent: false } });
   });
 });
