@@ -1,17 +1,10 @@
-import type { GetStaticPaths } from 'next';
-import { locales } from '../../i18n/config';
-import { makeLocaleRedirectGSP } from '../../lib/redirect-helpers';
+import { makeLocaleRedirectGSSP } from '../../lib/redirect-helpers';
 
 export default function WorksRedirect() {
   return null;
 }
 
-export const getStaticProps = makeLocaleRedirectGSP({
+export const getServerSideProps = makeLocaleRedirectGSSP({
   destination: (locale) => `/${locale}/content#works`,
   permanent: false,
-});
-
-export const getStaticPaths: GetStaticPaths = async () => ({
-  paths: locales.map((locale) => ({ params: { locale } })),
-  fallback: false,
 });

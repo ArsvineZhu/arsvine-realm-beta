@@ -1,13 +1,12 @@
-import type { GetServerSideProps, GetStaticProps, Redirect } from 'next';
+import type { GetServerSideProps, Redirect } from 'next';
 import { defaultLocale, isLocale, type Locale } from '../i18n/config';
 
 /**
  * 旧 URL 别名（/[locale]/posts、/license、/blog）的统一重定向 helper。
  *
- * 三类调用场景：
- *   - SSR 307 / 308：GSP/GSxP redirect 段，permanent=false；
- *   - SSR 301：永久重定向（license → copyright）；
- *   - 客户端 useEffect：纯 static 页面（fallback: false，无 server runtime）。
+ * 两类调用场景：
+ *   - SSR 307 / 308：GSSP redirect 段，permanent=false；
+ *   - SSR 301：永久重定向（license → copyright）。
  *
  * locale 解析：query.locale 必须是支持的 locale，否则回退到 defaultLocale。
  * 不会因未支持 locale 而 throw —— 这些是"旧 URL 别名"，应当 silent redirect
@@ -60,15 +59,6 @@ export function buildLocaleRedirectPath(
  */
 export function makeLocaleRedirectGSSP(options: Omit<LocaleRedirectOptions, 'preserveQuery'>) {
   const handler: GetServerSideProps = async ({ params }) =>
-    localeAwareRedirect(params, options);
-  return handler;
-}
-
-/**
- * 与 makeLocaleRedirectGSSP 相同，但用于静态路由别名页。
- */
-export function makeLocaleRedirectGSP(options: Omit<LocaleRedirectOptions, 'preserveQuery'>) {
-  const handler: GetStaticProps = async ({ params }) =>
     localeAwareRedirect(params, options);
   return handler;
 }
