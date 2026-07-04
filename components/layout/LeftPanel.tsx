@@ -241,7 +241,7 @@ export default function LeftPanel({
                 <span>{tNav('groupContent')}</span>
               </div>
             )}
-            {i === 5 && (
+            {i === 6 && (
               <div
                 role="separator"
                 aria-label={tNav('groupStandalone')}

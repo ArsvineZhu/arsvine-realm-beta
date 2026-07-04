@@ -1,6 +1,6 @@
 @echo off
 REM -------------------------------------------------------------------------
-REM arsvine-realm local dev launcher — double-click friendly entry point.
+REM arsvine-realm local dev launcher - double-click friendly entry point.
 REM
 REM Windows doesn't execute .ps1 files on double-click (defaults to Notepad).
 REM This .cmd wrapper launches the real script via PowerShell 7 or 5.1.

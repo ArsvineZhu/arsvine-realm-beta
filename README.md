@@ -64,7 +64,7 @@ npm run test       # 单测：vitest run（一次性，无 watch script）
 1. 自提升到管理员（UAC 弹窗）
 2. 写 `127.0.0.1  dev.arsvine.com` 到 Windows hosts 文件（首次备份 `hosts.bak.<日期>`）
 3. 如果系统代理已开启，临时把 `dev.arsvine.com` 加入当前用户的 `ProxyOverride`
-4. 启动 `npm run dev`（端口 3000）
+4. 用 `PORT=80` 启动同一个 dev server 入口（`node server.js`）
 5. Ctrl+C 退出时自动停 dev server、恢复 proxy bypass、回退 hosts 条目、`ipconfig /flushdns`
 
 手动单向操作：
@@ -74,9 +74,15 @@ npm run test       # 单测：vitest run（一次性，无 watch script）
 .\scripts\dev-host-setup.cmd -Remove       # 清理 dev.arsvine.com hosts 条目
 ```
 
+如果用了 `-HostsOnly`，请手动用 `80` 端口启动：
+
+```powershell
+$env:PORT=80; npm run dev
+```
+
 > ⚠️ 脚本会修改 `C:\Windows\System32\drivers\etc\hosts`，并在系统代理开启时临时更新当前用户的 `ProxyOverride`。必须管理员权限。被 X 强关导致 hosts / proxy bypass 残留时用 `-Remove` 清理。
 
-浏览器打开 `http://dev.arsvine.com:3000` 后 Referer 变为 `dev.arsvine.com:3000`，COS 放行。
+浏览器打开 `http://dev.arsvine.com` 后 Referer 变为 `dev.arsvine.com`，COS 放行。
 
 ## 开发脚本
 

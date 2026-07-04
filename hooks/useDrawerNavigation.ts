@@ -50,8 +50,8 @@ export default function useDrawerNavigation({
     { label: tNav('blog'), href: `/${locale}/content#blog`, hash: 'blog', group: 'content' },
     { label: tNav('life'), href: `/${locale}/content#life`, hash: 'life', group: 'content' },
     { label: tNav('contact'), href: `/${locale}/content#contact`, hash: 'contact', group: 'content' },
+    { label: tNav('about'), href: `/${locale}/content#about`, hash: 'about', group: 'content' },
     { label: tNav('tweets'), href: `/${locale}/tweets`, group: 'standalone' },
-    { label: tNav('about'), href: `/${locale}/content#about`, hash: 'about', group: 'standalone' },
     { label: tNav('friends'), href: `/${locale}/friends`, group: 'standalone' },
   ]), [locale, tNav]);
 

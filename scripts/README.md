@@ -20,7 +20,7 @@
 1. UAC 自提升（脚本本身不用管理员权限就能起，触发 UAC 后真正干活）。
 2. 备份 `C:\Windows\System32\drivers\etc\hosts` 为 `hosts.bak.<日期>`，写入 `127.0.0.1 dev.arsvine.com`。
 3. 系统代理开启时，临时把 `dev.arsvine.com` 加进当前用户 `ProxyOverride`（不动系统级代理设置）。
-4. 启动 `npm run dev`（端口 3000）。
+4. 用 `PORT=80` 启动同一个 dev server 入口（`node server.js`）。
 5. Ctrl+C → 停 dev server → 还原 ProxyOverride → 回退 hosts → `ipconfig /flushdns`。
 
 子命令：
@@ -28,6 +28,12 @@
 ```bat
 .\scripts\dev-host-setup.cmd -HostsOnly    :: 只写 hosts，不启动 dev server
 .\scripts\dev-host-setup.cmd -Remove       :: 清理 dev.arsvine.com hosts 条目
+```
+
+如果用了 `-HostsOnly`，请手动执行：
+
+```powershell
+$env:PORT=80; npm run dev
 ```
 
 > 被 X 强关、Ctrl+C 没生效导致 hosts 残留时，跑 `-Remove` 清理。重新跑 `dev-host-setup.cmd` 不会重复写入（脚本检测重复行）。

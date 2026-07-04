@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to agents when working with code in this repository.
 
 ## Project Overview
 
@@ -177,7 +177,7 @@ Verify with: `curl -I -H "Referer: https://arsvine.com/" https://cdn.arsvine.com
 
 ### Local Dev — COS Referer
 
-COS `cdn.arsvine.com` only accepts Referer `*.arsvine.com`. Run `scripts/dev-host-setup.cmd` (double-click, self-elevating UAC) to add `dev.arsvine.com → 127.0.0.1` to Windows hosts, start the dev server, and auto-clean on exit. Sub-commands: `-HostsOnly` (write hosts only), `-Remove` (clean up). Open `http://dev.arsvine.com:3000` — Referer becomes `dev.arsvine.com:3000`, COS lets it through.
+COS `cdn.arsvine.com` only accepts Referer `*.arsvine.com`. Run `scripts/dev-host-setup.cmd` (double-click, self-elevating UAC) to add `dev.arsvine.com → 127.0.0.1` to Windows hosts, start the dev server on port `80`, and auto-clean on exit. Sub-commands: `-HostsOnly` (write hosts only), `-Remove` (clean up). Open `http://dev.arsvine.com` — Referer becomes `dev.arsvine.com`, COS lets it through.
 
 ### Favicon Layout
 

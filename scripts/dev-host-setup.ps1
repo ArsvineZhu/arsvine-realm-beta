@@ -7,12 +7,12 @@
 #   3. If the current user has a Windows proxy enabled, temporarily append
 #      `dev.arsvine.com` to the proxy bypass list so browsers do not send the
 #      local alias through the proxy first.
-#   4. Run `node server.js` (the same entry as `npm run dev`) directly,
+#   4. Run `node server.js` directly with `PORT=80`,
 #      streaming its output here. We bypass npm.cmd because Ctrl+C only
-#      kills the cmd.exe wrapper, leaving node.exe orphaned on port 3000.
+#      kills the cmd.exe wrapper, leaving node.exe orphaned on port 80.
 #   5. On Ctrl+C / normal exit / script termination:
 #      - Stop the dev server (graceful taskkill, then /F fallback,
-#        then port-3000 sweep as a last resort).
+#        then port-80 sweep as a last resort).
 #      - Remove the hosts entry that this script added (won't remove an
 #        entry that was already there before the script ran).
 #      - Restore the proxy bypass entry if this script added it.
@@ -28,7 +28,7 @@
 #   - Window close (X) bypasses finally; use -Remove to clean up afterwards.
 #   - A daily backup of the hosts file is written next to it the first time
 #     the script edits it on any given day.
-#   - Cleanup includes a port-3000 sweep so any orphan node.exe gets killed.
+#   - Cleanup includes a port-80 sweep so any orphan node.exe gets killed.
 
 param(
     [switch]$Remove,
@@ -41,7 +41,8 @@ $ErrorActionPreference = 'Stop'
 
 $Hostname  = 'dev.arsvine.com'
 $IP        = '127.0.0.1'
-$DevPort   = 3000
+$DevPort   = 80
+$LegacyDevPort = 3000
 $HostsPath = "$env:windir\System32\drivers\etc\hosts"
 $Marker    = "$IP`t$Hostname`t# arsvine-realm local dev"
 $InternetSettingsPath = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings'
@@ -295,7 +296,7 @@ $weAddedProxyBypass = Add-ProxyBypassEntry
 
 if ($HostsOnly) {
     Write-Host ""
-    Write-Host "Hosts entry active. Open another shell and run npm run dev yourself." -ForegroundColor Cyan
+    Write-Host ('Hosts entry active. Open another shell and run "$env:PORT={0}; npm run dev" yourself.' -f $DevPort) -ForegroundColor Cyan
     Write-Host "Press Enter here to remove the hosts entry and exit." -ForegroundColor Yellow
     Read-Host
     if ($weAdded) {
@@ -307,21 +308,32 @@ if ($HostsOnly) {
 
 # --- Default: also launch the dev server ---------------------------------
 
-# Sanity: if a previous crashed run left an orphan node.exe on port 3000,
-# clean it up automatically. If another program owns the port, abort so we
-# don't kill unrelated software.
-$preExisting = Get-PortListenerPid -Port $DevPort
-if ($preExisting) {
+# Sanity: if a previous crashed run left an orphan node.exe on the current
+# or legacy dev port, clean it up automatically. A lingering server on the
+# legacy default port (3000) still blocks Next.js from starting another dev
+# instance in the same project directory, even if this script now uses port 80.
+$portsToCheck = @($DevPort)
+if ($LegacyDevPort -ne $DevPort) {
+    $portsToCheck += $LegacyDevPort
+}
+
+foreach ($portToCheck in $portsToCheck) {
+    $preExisting = Get-PortListenerPid -Port $portToCheck
+    if (-not $preExisting) {
+        continue
+    }
+
     $preExistingName = Get-ProcessNameByPid -Pid $preExisting
     if ($preExistingName -and $preExistingName.Equals('node', [System.StringComparison]::OrdinalIgnoreCase)) {
+        $portLabel = if ($portToCheck -eq $DevPort) { "port $portToCheck" } else { "legacy dev port $portToCheck" }
         Write-Host ""
-        Write-Host "Port $DevPort is held by an old node process (PID $preExisting). Cleaning it up..." -ForegroundColor DarkYellow
+        Write-Host "$($portLabel.Substring(0,1).ToUpper() + $portLabel.Substring(1)) is held by an old node process (PID $preExisting). Cleaning it up..." -ForegroundColor DarkYellow
         & taskkill /F /T /PID $preExisting 2>$null | Out-Null
         Start-Sleep -Milliseconds 800
-        Stop-PortListener -Port $DevPort
-        $stillHeld = Get-PortListenerPid -Port $DevPort
+        Stop-PortListener -Port $portToCheck
+        $stillHeld = Get-PortListenerPid -Port $portToCheck
         if ($stillHeld) {
-            Write-Host "Port $DevPort is still in use after cleanup (PID $stillHeld)." -ForegroundColor Red
+            Write-Host "Port $portToCheck is still in use after cleanup (PID $stillHeld)." -ForegroundColor Red
             if ($weAdded) {
                 if ($isAdministrator) { Remove-HostsEntry } else { Invoke-ElevatedHostsAction -Action 'Remove' }
             }
@@ -329,7 +341,7 @@ if ($preExisting) {
             Read-Host "Press Enter to close"
             exit 1
         }
-    } else {
+    } elseif ($portToCheck -eq $DevPort) {
         $ownerLabel = if ($preExistingName) { "PID $preExisting, $preExistingName" } else { "PID $preExisting" }
         Write-Host ""
         Write-Host "Port $DevPort is already in use ($ownerLabel)." -ForegroundColor Red
@@ -345,7 +357,11 @@ if ($preExisting) {
 
 Write-Host ""
 Write-Host "Starting dev server (node server.js) in $ProjectRoot" -ForegroundColor Cyan
-Write-Host "Open: http://${Hostname}:${DevPort}" -ForegroundColor Cyan
+if ($DevPort -eq 80) {
+    Write-Host "Open: http://${Hostname}" -ForegroundColor Cyan
+} else {
+    Write-Host "Open: http://${Hostname}:${DevPort}" -ForegroundColor Cyan
+}
 Write-Host "Note: first compile can take 10-30s. Wait for `"> Ready on http://localhost:${DevPort}`"." -ForegroundColor DarkGray
 Write-Host "Press Ctrl+C to stop the server and clean up the local alias." -ForegroundColor Yellow
 Write-Host ""
@@ -355,12 +371,19 @@ try {
     # IMPORTANT: invoke node.exe directly (not npm.cmd). This keeps live stdout
     # visible in the current console while still avoiding npm.cmd's extra cmd.exe
     # wrapper that used to orphan node.exe on Ctrl+C.
+    $previousPort = $env:PORT
+    $env:PORT = [string]$DevPort
     & node.exe server.js
 }
 finally {
     Pop-Location
+    if ($null -ne $previousPort) {
+        $env:PORT = $previousPort
+    } else {
+        Remove-Item Env:PORT -ErrorAction SilentlyContinue
+    }
     Write-Host ""
-    # Belt-and-suspenders: sweep port 3000 so Ctrl+C / console close never leaves
+    # Belt-and-suspenders: sweep port 80 so Ctrl+C / console close never leaves
     # an orphan listener behind.
     Stop-PortListener -Port $DevPort
     if ($weAdded) {
