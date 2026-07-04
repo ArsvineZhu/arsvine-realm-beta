@@ -91,10 +91,10 @@ export default function LeftPanel({
   const tSite = useTranslations('pages.site');
   const travellingUrl = `https://www.travellings.cn/arsvine?lang=${TRAVELLING_LANG_MAP[locale]}`;
   const travellingLabel = tSite('travellingLabel');
-  const artNewsUrl = 'https://mayrain.arsvine.com';
-  const artNewsLabel = tSite('artNewsLabel');
-  const artNewsMessage = tSite('artNewsMessage');
-  const artNewsCursorLabel = tSite('artNewsCursor');
+  const newsUrl = 'https://lab.arsvine.com';
+  const newsLabel = tSite('newsLabel');
+  const newsMessage = tSite('newsMessage');
+  const newsCursorLabel = tSite('newsCursor');
   const chargeLeverLabel = isTesseractActivated ? 'CHARGING' : 'START CHARGE';
   const dischargeLeverLabel = isDischarging
     ? 'DISCHARGING'
@@ -318,30 +318,30 @@ export default function LeftPanel({
           <img src="/travel.svg" alt={travellingLabel} draggable={false} />
         </a>
         <a
-          href={artNewsUrl}
+          href={newsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className={styles.artNewsLink}
-          aria-label={`${artNewsLabel} ${artNewsMessage}`}
-          data-cursor-label={artNewsCursorLabel}
+          className={styles.newsLink}
+          aria-label={`${newsLabel} ${newsMessage}`}
+          data-cursor-label={newsCursorLabel}
         >
-          <span className={styles.artNewsStatusDot} aria-hidden="true"></span>
-          <span className={styles.artNewsTickerViewport}>
-            <span className={styles.artNewsTickerTrack}>
+          <span className={styles.newsStatusDot} aria-hidden="true"></span>
+          <span className={styles.newsTickerViewport}>
+            <span className={styles.newsTickerTrack}>
               {[0, 1].map((itemIndex) => (
                 <span
                   key={itemIndex}
-                  className={styles.artNewsTickerItem}
+                  className={styles.newsTickerItem}
                   aria-hidden={itemIndex === 1 ? 'true' : undefined}
                 >
-                  <span className={styles.artNewsBreaking}>{artNewsLabel}</span>
-                  <span className={styles.artNewsMessage}>{artNewsMessage}</span>
+                  <span className={styles.newsBreaking}>{newsLabel}</span>
+                  <span className={styles.newsMessage}>{newsMessage}</span>
                 </span>
               ))}
             </span>
           </span>
           <svg
-            className={styles.artNewsExternalIcon}
+            className={styles.newsExternalIcon}
             viewBox="0 0 24 24"
             fill="none"
             aria-hidden="true"

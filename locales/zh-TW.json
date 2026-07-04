@@ -106,9 +106,9 @@
       "taglinePrimary": "Я бы хотела жить с Вами в маленьком городе, Где вечные сумерки и вечные колокола.",
       "taglineSecondary": "我想和你一起生活，在小城，那裡有永恆的黃昏和永恆的鐘聲。",
       "travellingLabel": "Travelling",
-      "artNewsLabel": "BREAKING NEWS:",
-      "artNewsMessage": "MayRain Arts 即將開放。",
-      "artNewsCursor": "MayRain Arts"
+      "newsLabel": "BREAKING NEWS:",
+      "newsMessage": "Arsvine Lab 即將開放。",
+      "newsCursor": "Arsvine Lab"
     },
     "content": {
       "description": "Portfolio — Explore"

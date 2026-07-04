@@ -22,8 +22,11 @@ export default function LanguageSwitcher({ currentLocale: currentLocaleProp }: L
     if (nextLocale === currentLocale) return;
     // 写 cookie，180 天后过期
     document.cookie = `NEXT_LOCALE=${nextLocale}; max-age=${60 * 60 * 24 * 180}; path=/; samesite=lax`;
+    const currentVisiblePath = typeof window !== 'undefined'
+      ? `${window.location.pathname}${window.location.search}${window.location.hash}`
+      : router.asPath;
     const nextPath = currentLocale
-      ? router.asPath.replace(new RegExp(`^/${currentLocale}(?=/|$)`), `/${nextLocale}`)
+      ? currentVisiblePath.replace(new RegExp(`^/${currentLocale}(?=/|$)`), `/${nextLocale}`)
       : `/${nextLocale}${pathWithoutQuery === '/' ? '' : pathWithoutQuery}`;
     router.push(nextPath, undefined, { scroll: false });
   }, [currentLocale, pathWithoutQuery, router]);

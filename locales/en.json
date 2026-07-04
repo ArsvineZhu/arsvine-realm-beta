@@ -106,9 +106,9 @@
       "taglinePrimary": "I would like to live with you in a small town, where there are eternal twilights and eternal bells.",
       "taglineSecondary": "Я бы хотела жить с Вами в маленьком городе, Где вечные сумерки и вечные колокола.",
       "travellingLabel": "Travelling",
-      "artNewsLabel": "BREAKING NEWS:",
-      "artNewsMessage": "MayRain Arts will be available soon.",
-      "artNewsCursor": "MayRain Arts"
+      "newsLabel": "BREAKING NEWS:",
+      "newsMessage": "Arsvine Lab will be available soon.",
+      "newsCursor": "Arsvine Lab"
     },
     "content": {
       "description": "Portfolio — Explore"

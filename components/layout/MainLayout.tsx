@@ -246,6 +246,31 @@ export default function MainLayout({ children, appLocale }: MainLayoutProps) {
     };
   }, [isMobile]);
 
+  const updateContentHashAndScroll = useCallback((link: {
+    label: string;
+    href: string;
+    group: 'content' | 'standalone';
+    hash?: string;
+  }) => {
+    if (!link.hash) {
+      return;
+    }
+
+    if (typeof window !== 'undefined') {
+      const nextUrl = new URL(link.href, window.location.origin);
+      const nextHref = `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`;
+      const currentHref = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      if (nextHref !== currentHref) {
+        window.history.pushState(window.history.state, '', nextHref);
+      }
+    }
+
+    const el = document.getElementById(`section-${link.hash}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, []);
+
   const handleLeftNavLinkClick = (link: { label: string; href: string; group: 'content' | 'standalone'; hash?: string }) => {
     closeDrawer();
 
@@ -253,16 +278,10 @@ export default function MainLayout({ children, appLocale }: MainLayoutProps) {
       if (isDetailOpen()) {
         handleBack();
         window.setTimeout(() => {
-          const el = document.getElementById(`section-${link.hash}`);
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
+          updateContentHashAndScroll(link);
         }, CONTENT_DETAIL_EXIT_DELAY_MS);
       } else {
-        const el = document.getElementById(`section-${link.hash}`);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        updateContentHashAndScroll(link);
       }
       return;
     }

@@ -895,7 +895,7 @@
   }
 }
 
-.artNewsLink {
+.newsLink {
   min-width: 0;
   flex: 1 1 auto;
   display: flex;
@@ -933,18 +933,18 @@
       rgba(var(--ark-dark-blue-rgb), 0.36);
     box-shadow: 0 0 14px rgba(var(--ark-highlight-green-rgb), 0.08);
 
-    .artNewsTickerTrack {
+    .newsTickerTrack {
       animation-play-state: paused;
     }
 
-    .artNewsStatusDot {
+    .newsStatusDot {
       transform: scale(1.04);
       box-shadow: 0 0 18px rgba(var(--ark-highlight-green-rgb), 0.34);
     }
   }
 }
 
-.artNewsStatusDot {
+.newsStatusDot {
   width: 10px;
   height: 10px;
   flex: 0 0 10px;
@@ -956,39 +956,39 @@
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.artNewsTickerViewport {
+.newsTickerViewport {
   min-width: 0;
   flex: 1 1 auto;
   overflow: hidden;
   white-space: nowrap;
 }
 
-.artNewsTickerTrack {
+.newsTickerTrack {
   display: inline-flex;
   align-items: center;
   min-width: max-content;
   will-change: transform;
-  animation: artNewsTicker 22s linear infinite;
+  animation: newsTicker 22s linear infinite;
 }
 
-.artNewsTickerItem {
+.newsTickerItem {
   display: inline-flex;
   align-items: center;
   min-width: max-content;
   padding-right: 40px;
 }
 
-.artNewsBreaking {
+.newsBreaking {
   margin-right: 0.6ch;
   color: var(--ark-highlight-green);
   text-shadow: 0 0 8px rgba(var(--ark-highlight-green-rgb), 0.14);
 }
 
-.artNewsMessage {
+.newsMessage {
   color: var(--ark-text-secondary);
 }
 
-.artNewsExternalIcon {
+.newsExternalIcon {
   width: 14px;
   height: 14px;
   flex: 0 0 14px;
@@ -1004,7 +1004,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .artNewsTickerTrack {
+  .newsTickerTrack {
     animation: none;
   }
 }
@@ -1426,7 +1426,7 @@
     }
   }
 
-  .artNewsLink {
+  .newsLink {
     width: 100%;
     min-height: 56px;
     padding: 0 16px;
@@ -1477,20 +1477,20 @@
     margin-bottom: 0;
   }
 
-  .artNewsLink {
+  .newsLink {
     min-height: 52px;
     font-size: var(--fs-sm);
     gap: 12px;
     padding: 0 14px;
   }
 
-  .artNewsStatusDot {
+  .newsStatusDot {
     width: 10px;
     height: 10px;
     flex-basis: 10px;
   }
 
-  .artNewsExternalIcon {
+  .newsExternalIcon {
     width: 14px;
     height: 14px;
     flex-basis: 14px;
