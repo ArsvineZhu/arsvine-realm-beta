@@ -46,6 +46,7 @@ Next.js Pages Router。**不要换 App Router**。所有用户路由都在 `[loc
 ## 关键约束
 
 - **路由结构是 `[locale]` 段必带的**。任何新页面（除非是 `_app` / `_document` / `api/*` / 顶层 sitemap/robots）都进 `[locale]/`，由 `proxy.ts` 把裸路径 308 跳进来。
+- **`pages/` 里不能放测试文件**。这里只允许真实页面、API 路由和框架约定文件；`*.test.*` / `*.spec.*` 必须放在 `tests/`、`lib/`、`hooks/`、`components/` 等非路由目录，否则 `next build` 会把它们当成页面或 API 路由扫描。
 - **导航通过 `useTransition().navigateTo()`**，不要 `router.push()`。后者会跳过转场动画与 home↔content 的列收展。
 - **博客详情用 SSG + `fallback: 'blocking'` + ISR `revalidate: 300`**。新增类似动态详情页时遵循同模式（参考 `[locale]/blog/[slug].tsx`）。
 - **保护文章的 `_next/data/.../[slug].json` 不能含正文**：`getStaticProps` 检测到 `access.mode !== 'public'` 时返回 `mdxSource: null` + 脱敏 meta；正文走 `/api/post-variant` 单独取（且服务端二次校验 cookie）。
@@ -57,10 +58,11 @@ Next.js Pages Router。**不要换 App Router**。所有用户路由都在 `[loc
 页面：
 
 1. 在 `[locale]/` 下新建文件。文件名 = 路径段；动态参数用 `[param]`。
-2. 默认 export 是页面组件，按需添加 `getStaticProps` / `getStaticPaths` / `getServerSideProps`。
-3. 多语言：用 `useTranslations()` 读 `locales/<locale>.json`，结构化数据走 `data/<topic>/<locale>.ts`。
-4. 如果是详情页（左侧 panel 应该隐藏），把 pathname 模板加进 `hooks/useLayoutRouteMode.ts:18-23` 与 `hooks/useRouteLoadingKind.ts:18-25` 的 standalone 列表 —— 否则 RouteLoadingOverlay 版式判定会错。
-5. SEO：用 `<HreflangLinks>` 与 `<Head>`，按 `_app.tsx` 既有模式。
+2. 测试不要与页面共置；页面相关测试放 `tests/` 或相邻的非 `pages/` 目录。
+3. 默认 export 是页面组件，按需添加 `getStaticProps` / `getStaticPaths` / `getServerSideProps`。
+4. 多语言：用 `useTranslations()` 读 `locales/<locale>.json`，结构化数据走 `data/<topic>/<locale>.ts`。
+5. 如果是详情页（左侧 panel 应该隐藏），把 pathname 模板加进 `hooks/useLayoutRouteMode.ts:18-23` 与 `hooks/useRouteLoadingKind.ts:18-25` 的 standalone 列表 —— 否则 RouteLoadingOverlay 版式判定会错。
+6. SEO：用 `<HreflangLinks>` 与 `<Head>`，按 `_app.tsx` 既有模式。
 
 API：
 

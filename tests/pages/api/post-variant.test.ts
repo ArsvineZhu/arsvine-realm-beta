@@ -12,13 +12,14 @@ const {
   serializeMock: vi.fn(),
 }));
 
-vi.mock('../../lib/blog', () => ({
+vi.mock('../../../lib/blog', () => ({
   getBlogPostEntry: getBlogPostEntryMock,
   getPostBySlugAndContentLocale: getPostBySlugAndContentLocaleMock,
-  isBlogContentLocale: (value: unknown) => typeof value === 'string' && ['zh-CN', 'zh-TW', 'en', 'ja', 'ru', 'fr'].includes(value),
+  isBlogContentLocale: (value: unknown) =>
+    typeof value === 'string' && ['zh-CN', 'zh-TW', 'en', 'ja', 'ru', 'fr'].includes(value),
 }));
 
-vi.mock('../../lib/content/access-grant', () => ({
+vi.mock('../../../lib/content/access-grant', () => ({
   hasValidAccessGrant: hasValidAccessGrantMock,
 }));
 
@@ -26,7 +27,7 @@ vi.mock('next-mdx-remote/serialize', () => ({
   serialize: serializeMock,
 }));
 
-import handler from './post-variant';
+import handler from '../../../pages/api/post-variant';
 
 function createMockResponse() {
   const headers = new Map<string, string | string[]>();
@@ -110,7 +111,11 @@ describe('/api/post-variant', () => {
       },
       content: '# secret',
     });
-    serializeMock.mockResolvedValue({ compiledSource: 'compiled', frontmatter: {}, scope: {} });
+    serializeMock.mockResolvedValue({
+      compiledSource: 'compiled',
+      frontmatter: {},
+      scope: {},
+    });
 
     const mock = createMockResponse();
     await handler({
@@ -120,7 +125,10 @@ describe('/api/post-variant', () => {
     } as never, mock.res as never);
 
     expect(mock.statusCode).toBe(200);
-    expect(getPostBySlugAndContentLocaleMock).toHaveBeenCalledWith('protected-post', 'zh-CN');
+    expect(getPostBySlugAndContentLocaleMock).toHaveBeenCalledWith(
+      'protected-post',
+      'zh-CN',
+    );
     expect(serializeMock).toHaveBeenCalledWith('# secret');
   });
 });

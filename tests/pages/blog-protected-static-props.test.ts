@@ -52,49 +52,49 @@ vi.mock('next-mdx-remote/serialize', () => ({
   serialize: serializeMock,
 }));
 
-vi.mock('../components/mdx/MDXComponents', () => ({
+vi.mock('../../components/mdx/MDXComponents', () => ({
   default: {},
 }));
 
-vi.mock('../components/shared/LocaleFallbackBanner', () => ({
+vi.mock('../../components/shared/LocaleFallbackBanner', () => ({
   default: () => null,
 }));
 
-vi.mock('../components/shared/HreflangLinks', () => ({
+vi.mock('../../components/shared/HreflangLinks', () => ({
   default: () => null,
 }));
 
-vi.mock('../components/shared/AnimatedTitleChars', () => ({
+vi.mock('../../components/shared/AnimatedTitleChars', () => ({
   AnimatedTitleChars: () => null,
 }));
 
-vi.mock('../components/blog/ProtectedPostGate', () => ({
+vi.mock('../../components/blog/ProtectedPostGate', () => ({
   default: () => null,
 }));
 
-vi.mock('../components/blog/BlogStateShell', () => ({
+vi.mock('../../components/blog/BlogStateShell', () => ({
   default: () => null,
 }));
 
-vi.mock('../components/blog/BlogDetailScaffold', () => ({
+vi.mock('../../components/blog/BlogDetailScaffold', () => ({
   default: () => null,
 }));
 
-vi.mock('../contexts/AppContext', () => ({
+vi.mock('../../contexts/AppContext', () => ({
   useApp: () => ({ isInverted: false }),
 }));
 
-vi.mock('../contexts/TransitionContext', () => ({
+vi.mock('../../contexts/TransitionContext', () => ({
   useTransition: () => ({ navigateTo: vi.fn() }),
 }));
 
-vi.mock('../hooks/useBlogPostState', () => ({
+vi.mock('../../hooks/useBlogPostState', () => ({
   __esModule: true,
   default: vi.fn(),
   blogContentLocaleLabels: {},
 }));
 
-vi.mock('../lib/blog', () => ({
+vi.mock('../../lib/blog', () => ({
   getBlogPostEntry: getBlogPostEntryMock,
   getPostMetaBySlugAndLocale: getPostMetaBySlugAndLocaleMock,
   getAllPostsForLocale: getAllPostsForLocaleMock,
@@ -105,7 +105,7 @@ vi.mock('../lib/blog', () => ({
   normalizeAccess: normalizeAccessMock,
 }));
 
-vi.mock('../lib/i18n-data', () => ({
+vi.mock('../../lib/i18n-data', () => ({
   loadMessages: loadMessagesMock,
 }));
 
@@ -156,7 +156,7 @@ describe('protected blog getStaticProps', () => {
     getAvailablePostContentLocalesMock.mockResolvedValue(['zh-CN']);
     normalizeAccessMock.mockReturnValue({ mode: 'totp', group: 'family' });
 
-    const { getStaticProps } = await import('./[locale]/blog/[slug]');
+    const { getStaticProps } = await import('../../pages/[locale]/blog/[slug]');
     const result = await getStaticProps({
       params: { locale: 'zh-CN', slug: 'protected-post' },
     } as never);
