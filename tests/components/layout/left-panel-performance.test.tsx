@@ -57,7 +57,7 @@ function buildProps(overrides: Record<string, unknown> = {}) {
 describe('LeftPanel adaptive performance', () => {
   beforeEach(() => {
     useResponsiveMock.mockReturnValue({ isMobile: false, isTablet: false, isDesktop: true });
-    useAppMock.mockReturnValue({ allowDecorativeMotion: true, performanceTier: 'full' });
+    useAppMock.mockReturnValue({ allowLogoMotion: true, performanceTier: 'full' });
   });
 
   afterEach(() => {
@@ -74,11 +74,24 @@ describe('LeftPanel adaptive performance', () => {
 
   it('skips logo color dispersion in reduced mode', () => {
     const addSpy = vi.spyOn(window, 'addEventListener');
-    useAppMock.mockReturnValue({ allowDecorativeMotion: false, performanceTier: 'reduced' });
+    useAppMock.mockReturnValue({ allowLogoMotion: false, performanceTier: 'reduced' });
 
     const { container } = render(<LeftPanel {...buildProps()} />);
 
     expect(addSpy).not.toHaveBeenCalledWith('mousemove', expect.any(Function), { passive: true });
-    expect(container.querySelector('[class*="logoContainer"]')).toBeNull();
+    expect(container.querySelector('[class*="logoContainer"]')).not.toBeNull();
+  });
+
+  it('keeps one accessible Travelling link with desktop and compact mobile content', () => {
+    const { container } = render(<LeftPanel {...buildProps()} />);
+    const links = container.querySelectorAll('a[href^="https://www.travellings.cn/arsvine"]');
+
+    expect(links).toHaveLength(1);
+    expect(links[0].getAttribute('aria-label')).toBe('travellingLabel');
+    expect(links[0].getAttribute('target')).toBe('_blank');
+    expect(links[0].getAttribute('rel')).toBe('noopener noreferrer');
+    expect(links[0].querySelector('img')?.getAttribute('alt')).toBe('');
+    expect(links[0].querySelector('[class*="travellingMobileBadge"]')?.textContent).toBe('travellingLabel');
+    expect(links[0].querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
   });
 });
