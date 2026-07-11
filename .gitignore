@@ -50,6 +50,7 @@ docs/dev/*
 docs/superpowers/*
 !docs/preview.png
 .codex*/
+.agents/
 .claude/
 
 # OS generated files
