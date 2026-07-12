@@ -14,7 +14,7 @@ This file is the concise coding-agent entry point for **ARSVINE REALM**. Keep it
 
 ## Project snapshot
 
-ARSVINE REALM is a personal post-apocalyptic HUD-themed portfolio and blog site. It uses **Next.js 16 Pages Router**, React 18, TypeScript, SCSS Modules, Three.js, GSAP, MDX, `next-intl` 4, Vitest, and a custom Node.js server. The production runtime target is Node.js `24.x`.
+ARSVINE REALM is a personal post-apocalyptic HUD-themed portfolio and blog site. It uses **Next.js 16 Pages Router**, React 19, TypeScript, SCSS Modules, Three.js, GSAP, MDX, `next-intl` 4, Vitest, and a custom Node.js server. The production runtime target is Node.js `24.x`.
 
 User-facing pages live under `/<locale>/...` with UI locales `zh-CN`, `zh-TW`, and `en`.
 

@@ -1,6 +1,6 @@
 # hooks/
 
-自定义 React Hooks。命名一律 `use*` camelCase，**默认 default export**，单职责优先。
+自定义 React Hooks。命名一律 `use*` camelCase，单职责优先；单一 hook 通常使用 default export，聚合 facade 可保留 named re-export。
 
 ## 现有 Hook 速查
 
@@ -9,7 +9,9 @@
 | `useAnimationSequence` | 时间 + 状态机 | 首页加载序列：loading screen → 列展开 → HUD 入场。被 `AppContext` 组合 |
 | `usePowerSystem` | localStorage + Tesseract 交互 | 电量、放电、反转模式；持久化到 `arsvine:power-system` |
 | `useRealtimeStats` | `setInterval` | 实时时钟、系统在线时长、当前访问时长（纯前端，无网络） |
-| `useTypingEffect` (`useFateTypingEffect` / `useEnvParamsTypingEffect`) | preset + `/api/hitokoto` | 打字机效果。Fate 行交替「预设 1 轮 + 一言 1 句」 |
+| `useFateTypingEffect` | preset + `/api/hitokoto` | Fate 打字机：交替运行「预设 1 轮 + 一言 1 句」 |
+| `useEnvParamsTypingEffect` | router、visibility、scroll + telemetry | 环境遥测与残影打字机；管理 boot、刷新、负载和清理 |
+| `useTypingEffect` | compatibility re-export | 为现有 import 保留两个 typing hook 的 named re-export |
 | `useColumnHover` | 鼠标 hover | 主页五列 HUD 文案切换 |
 | `useBlogPostState` | `lib/blog-post-state.ts` reducer | 博客详情页客户端状态机：authChecking → authRequired/granted → loadingVariant → ready。带两个曾出过 bug 的并发竞态防护 |
 | `useRouteLoadingKind` | `router.events` + `router.pathname` | 决定 RouteLoadingOverlay 的 `'standalone'` vs `'default'` 版式 |

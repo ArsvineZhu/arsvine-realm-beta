@@ -51,19 +51,19 @@
 
 ## 测试
 
-紧邻源文件 `*.test.ts`。当前覆盖：
+测试位于仓库根目录的 `tests/lib/`。当前覆盖包括：
 
-- `blog-client.test.ts` — URL / locale 解析
-- `blog-post-state.test.ts` — reducer 状态转移（**两个并发竞态修复在这里有回归测试**：`authResolved` 在 granted 分支必须清 activeRequestKey；resetArticle 必须把 authState 拉回 checking）
-- `content/access-api.test.ts` — protected-verify response 形状
-- `tesseract-geometry.test.ts` — 4D 投影矩阵
+- `tests/lib/blog-client.test.ts` — URL / locale 解析
+- `tests/lib/blog-post-state.test.ts` — reducer 状态转移（**两个并发竞态修复在这里有回归测试**：`authResolved` 在 granted 分支必须清 activeRequestKey；resetArticle 必须把 authState 拉回 checking）
+- `tests/lib/content/access-api.test.ts` — protected-verify response 形状
+- `tests/lib/tesseract-geometry.test.ts` — 4D 投影矩阵
 
-`vitest.config.ts` 用 `jsdom`，匹配 `**/*.test.ts`。运行：
+`vitest.config.ts` 使用 `jsdom`，匹配 `**/*.test.{ts,tsx}`。运行：
 
 ```bash
-npm run test
-npx vitest run lib/blog-post-state.test.ts
-npx vitest run -t "authResolved"
+pnpm test
+pnpm vitest run tests/lib/blog-post-state.test.ts
+pnpm vitest run -t "authResolved"
 ```
 
 ## 写新文件时

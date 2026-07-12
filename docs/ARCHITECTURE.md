@@ -5,7 +5,7 @@ This document explains the current architecture of **ARSVINE REALM**. It is inte
 ## Technical baseline
 
 - Next.js 16 with **Pages Router**.
-- React 18.
+- React 19.
 - TypeScript.
 - SCSS Modules plus shared SCSS partials.
 - `next-intl` 4 for UI localization.

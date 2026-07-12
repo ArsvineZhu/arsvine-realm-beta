@@ -217,6 +217,12 @@ function toPublicImageRecord(record: CatalogImageRecord): PublicCatalogImageReco
   };
 }
 
+function toPublishedImageRecords(records: CatalogImageRecord[]): PublicCatalogImageRecord[] {
+  return records
+    .map(toPublicImageRecord)
+    .filter((item): item is PublicCatalogImageRecord => !!item);
+}
+
 function toPublicAudioRecord(record: CatalogAudioRecord): PublicCatalogAudioRecord | null {
   if (!isPublished(record.status) || !record.id || !record.objectKey) {
     return null;
@@ -259,18 +265,12 @@ function paginate<T>(items: T[], page: number, pageSize = DEFAULT_WORKS_PAGE_SIZ
 
 export async function getHomeAssets() {
   const section = await loadSection('home');
-  return sortByOrderDate(
-    normalizeImageSection(section)
-      .map(toPublicImageRecord)
-      .filter((item): item is PublicCatalogImageRecord => !!item),
-  );
+  return sortByOrderDate(toPublishedImageRecords(normalizeImageSection(section)));
 }
 
 export async function getWorksAssets(options: { page?: number; collection?: string; tag?: string } = {}) {
   const section = await loadSection('works');
-  let items = normalizeImageSection(section)
-    .map(toPublicImageRecord)
-    .filter((item): item is PublicCatalogImageRecord => !!item);
+  let items = toPublishedImageRecords(normalizeImageSection(section));
 
   if (options.collection) {
     items = items.filter((item) => item.collection === options.collection);
@@ -294,18 +294,14 @@ export async function getCollectionAssets(slug: string, page = 1) {
   }
 
   return paginate(
-    sortByOrderDate(items.map(toPublicImageRecord).filter((item): item is PublicCatalogImageRecord => !!item)),
+    sortByOrderDate(toPublishedImageRecords(items)),
     page,
   );
 }
 
 export async function getLinkAssets() {
   const section = await loadSection('links');
-  return sortByOrderDate(
-    normalizeImageSection(section)
-      .map(toPublicImageRecord)
-      .filter((item): item is PublicCatalogImageRecord => !!item),
-  );
+  return sortByOrderDate(toPublishedImageRecords(normalizeImageSection(section)));
 }
 
 export async function getAudioAssets() {

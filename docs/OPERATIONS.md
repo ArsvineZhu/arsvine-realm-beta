@@ -159,6 +159,7 @@ public bucket:  realm/images/YYYY/MM/DD/<name>.<hash>.<ext>
 public bucket:  realm/audio/YYYY/MM/DD/<name>.<hash>.<ext>
 private bucket: realm/catalog/current.json
 private bucket: realm/catalog/versions/<version>/{home,works,collections,links,audio}.json
+private bucket: realm/catalog/versions/<version>/static-assets.json (optional site-shell manifest)
 ```
 
 Operational assumptions:

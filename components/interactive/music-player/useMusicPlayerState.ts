@@ -23,6 +23,17 @@ function getAudioPath(src: string) {
   return new URL(src, window.location.origin).pathname;
 }
 
+function syncAudioSource(audio: HTMLAudioElement, src: string) {
+  const currentSrcPath = audio.src ? getAudioPath(audio.src) : null;
+  if (currentSrcPath === getAudioPath(src)) {
+    return false;
+  }
+
+  audio.src = src;
+  audio.load();
+  return true;
+}
+
 export function useMusicPlayerState({ playlist }: UseMusicPlayerStateOptions) {
   const safeTimers = useSafeTimeouts();
   const initialPersistedState = useMemo(() => {
@@ -101,12 +112,7 @@ export function useMusicPlayerState({ playlist }: UseMusicPlayerStateOptions) {
     const track = playlist[resolvedTrackIndex];
     if (track) {
       const nextSrc = getTrackSrc(track);
-      const nextSrcPath = getAudioPath(nextSrc);
-      const currentSrcPath = audio.src ? new URL(audio.src).pathname : null;
-      if (currentSrcPath !== nextSrcPath) {
-        audio.src = nextSrc;
-        audio.load();
-      }
+      syncAudioSource(audio, nextSrc);
     } else {
       playbackIntentRef.current = false;
       setIsPlaying(false);
@@ -171,18 +177,13 @@ export function useMusicPlayerState({ playlist }: UseMusicPlayerStateOptions) {
     }
 
     const nextSrc = getTrackSrc(track);
-    const nextSrcPath = new URL(nextSrc, window.location.origin).pathname;
-    const currentSrcPath = audio.src ? new URL(audio.src).pathname : null;
     if (!hasUserInteractedRef.current && !playbackIntentRef.current) {
       return;
     }
 
-    if (currentSrcPath === nextSrcPath) {
+    if (!syncAudioSource(audio, nextSrc)) {
       return;
     }
-
-    audio.src = nextSrc;
-    audio.load();
     if (!playbackIntentRef.current) {
       return;
     }

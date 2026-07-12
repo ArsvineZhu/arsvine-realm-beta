@@ -1,17 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { getContentBlogIndexMock } = vi.hoisted(() => ({
+const { fetchGitHubContentMock, getContentBlogIndexMock } = vi.hoisted(() => ({
+  fetchGitHubContentMock: vi.fn(),
   getContentBlogIndexMock: vi.fn(),
 }));
 
 vi.mock('../../lib/content/github', () => ({
-  fetchGitHubContent: vi.fn(),
+  fetchGitHubContent: fetchGitHubContentMock,
   getContentBlogIndex: getContentBlogIndexMock,
 }));
 
-import { getAllPostsForLocale, getProtectedPostPublicMeta, normalizeAccess } from '../../lib/blog';
+import {
+  getAllPostsForLocale,
+  getPostBySlugAndContentLocale,
+  getPostMetaBySlugAndLocale,
+  getProtectedPostPublicMeta,
+  normalizeAccess,
+} from '../../lib/blog';
 
 beforeEach(() => {
+  fetchGitHubContentMock.mockReset();
   getContentBlogIndexMock.mockReset();
 });
 
@@ -147,6 +155,46 @@ describe('getAllPostsForLocale', () => {
       readingMinutes: 0,
       access: { mode: 'totp', group: 'family' },
     });
+  });
+});
+
+describe('post variant metadata', () => {
+  it('keeps shared metadata aligned while using the appropriate reading-time source', async () => {
+    getContentBlogIndexMock.mockResolvedValue({
+      version: 1,
+      updatedAt: '2026-06-17T00:00:00.000Z',
+      posts: [
+        {
+          slug: 'metadata-paths',
+          date: '2026-05-12',
+          updatedAt: '2026-05-13T00:00:00.000Z',
+          tags: ['fallback'],
+          pinned: true,
+          access: { mode: 'public' },
+          availableLocales: ['en'],
+          variants: {
+            en: {
+              title: 'Shared Metadata',
+              excerpt: 'Entry excerpt',
+              tags: ['essay'],
+              originLocale: 'zh-CN',
+              readingMinutes: 9,
+            },
+          },
+        },
+      ],
+    });
+    fetchGitHubContentMock.mockResolvedValue(`---\ntitle: Ignored frontmatter title\n---\n${'word '.repeat(116)}`);
+
+    const indexed = await getPostMetaBySlugAndLocale('metadata-paths', 'en');
+    const loaded = await getPostBySlugAndContentLocale('metadata-paths', 'en');
+
+    const { readingMinutes: indexedReadingMinutes, ...indexedFields } = indexed.meta;
+    const { readingMinutes: loadedReadingMinutes, ...loadedFields } = loaded.meta;
+
+    expect(indexedFields).toEqual(loadedFields);
+    expect(indexedReadingMinutes).toBe(9);
+    expect(loadedReadingMinutes).toBe(2);
   });
 });
 

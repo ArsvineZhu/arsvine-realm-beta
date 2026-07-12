@@ -85,10 +85,10 @@ function resolveVariantTags(
   return entry.tags;
 }
 
-function getVariantMeta(
+function buildVariantMeta(
   entry: ContentBlogIndexItem,
   actualContentLocale: BlogContentLocale,
-  content: string,
+  readingMinutes: number,
 ): BlogPostMeta {
   const variant = getVariantForLocale(entry, actualContentLocale);
   const title = variant?.title?.trim() || entry.slug;
@@ -102,34 +102,31 @@ function getVariantMeta(
     updated: entry.updatedAt,
     excerpt,
     tags: resolveVariantTags(entry, actualContentLocale),
-    readingMinutes: estimateReadingMinutes(content, actualContentLocale),
+    readingMinutes,
     pinned: entry.pinned,
     ...(originLocale ? { originLocale } : {}),
     access: normalizeAccess(entry.access),
   };
 }
 
+function getVariantMeta(
+  entry: ContentBlogIndexItem,
+  actualContentLocale: BlogContentLocale,
+  content: string,
+): BlogPostMeta {
+  return buildVariantMeta(
+    entry,
+    actualContentLocale,
+    estimateReadingMinutes(content, actualContentLocale),
+  );
+}
+
 function getVariantMetaFromIndex(
   entry: ContentBlogIndexItem,
   actualContentLocale: BlogContentLocale,
 ): BlogPostMeta {
-  const variant = getVariantForLocale(entry, actualContentLocale);
-  const title = variant?.title?.trim() || entry.slug;
-  const excerpt = variant?.excerpt?.trim() || '';
-  const originLocale = resolveOriginLocale(variant?.originLocale);
-
-  return {
-    slug: entry.slug,
-    title,
-    date: entry.date,
-    updated: entry.updatedAt,
-    excerpt,
-    tags: resolveVariantTags(entry, actualContentLocale),
-    readingMinutes: variant?.readingMinutes ?? 1,
-    pinned: entry.pinned,
-    ...(originLocale ? { originLocale } : {}),
-    access: normalizeAccess(entry.access),
-  };
+  const readingMinutes = getVariantForLocale(entry, actualContentLocale)?.readingMinutes ?? 1;
+  return buildVariantMeta(entry, actualContentLocale, readingMinutes);
 }
 
 function getTranslationStatus(

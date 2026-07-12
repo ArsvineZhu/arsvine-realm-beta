@@ -83,6 +83,16 @@ describe('useMusicPlayerState audio loading', () => {
     expect(playMock).toHaveBeenCalledTimes(1);
   });
 
+  it('does not reload the current source when play is requested again', () => {
+    render(<MusicPlayerStateHarness />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'play' }));
+    fireEvent.click(screen.getByRole('button', { name: 'play' }));
+
+    expect(loadMock).toHaveBeenCalledTimes(1);
+    expect(playMock).toHaveBeenCalledTimes(2);
+  });
+
   it('loads and plays the selected track after a user track change', () => {
     render(<MusicPlayerStateHarness />);
 

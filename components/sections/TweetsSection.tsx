@@ -149,16 +149,6 @@ function useTweetTypewriter(target: string) {
     };
   }, [target]);
 
-  useEffect(
-    () => () => {
-      if (timerRef.current !== null) {
-        window.clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
-    },
-    [],
-  );
-
   return { displayText, isAnimating };
 }
 
@@ -279,10 +269,6 @@ export default function TweetsSection({
     return formatDate(generatedAt, locale);
   }, [generatedAt, locale]);
 
-  const visibleGroups = useMemo(
-    () => loadedGroups,
-    [loadedGroups],
-  );
   const hasMoreMonths = loadedGroups.length < totalMonths;
 
   const handleLoadMore = async () => {
@@ -340,7 +326,7 @@ export default function TweetsSection({
       ) : (
         <>
           <div className={styles.monthGroupList}>
-            {visibleGroups.map((group) => (
+            {loadedGroups.map((group) => (
               <section key={group.month} className={styles.monthGroup}>
                 <div className={styles.monthHeader}>
                   <h3 className={styles.monthHeading}>

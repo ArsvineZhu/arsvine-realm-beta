@@ -8,7 +8,7 @@ ARSVINE REALM is a personal portfolio and blog site built around a post-apocalyp
 
 - **Project type:** personal site, not a generic template
 - **Owner:** Arsvine Zhu
-- **Stack:** Next.js 16 Pages Router, React 18, TypeScript, SCSS Modules, Three.js, GSAP, MDX, `next-intl` 4, Vitest, custom Node.js server
+- **Stack:** Next.js 16 Pages Router, React 19, TypeScript, SCSS Modules, Three.js, GSAP, MDX, `next-intl` 4, Vitest, custom Node.js server
 - **Runtime target:** Node.js `24.x`
 - **UI locales:** `zh-CN`, `zh-TW`, `en`
 - **Public route shape:** `/<locale>/...`

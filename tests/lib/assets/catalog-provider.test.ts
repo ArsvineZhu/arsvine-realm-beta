@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { getAudioAssets } from '../../../lib/assets/catalog-provider';
+import {
+  getAudioAssets,
+  getCollectionAssets,
+  getHomeAssets,
+  getWorksAssets,
+} from '../../../lib/assets/catalog-provider';
 
 const previousEnv = {
   COS_PRIVATE_BUCKET: process.env.COS_PRIVATE_BUCKET,
@@ -52,5 +57,52 @@ describe('catalog provider', () => {
         duration: 222,
       },
     ]);
+  });
+
+  it('projects only published home images with object keys from an items envelope', async () => {
+    const items = await getHomeAssets();
+
+    expect(items.map((item) => item.id)).toEqual(['home-default', 'home-published']);
+    expect(items[0]).toMatchObject({
+      id: 'home-default',
+      title: '',
+      description: '',
+      alt: '',
+      objectKey: 'realm/images/home/home-default.a1b2c3d4.webp',
+      tags: [],
+    });
+  });
+
+  it('filters, sorts, and paginates works after projecting published images', async () => {
+    const firstPage = await getWorksAssets();
+    const secondPage = await getWorksAssets({ page: 2 });
+    const filtered = await getWorksAssets({ collection: 'alpha', tag: 'web' });
+
+    expect(firstPage).toMatchObject({ page: 1, pageSize: 12, total: 13, totalPages: 2 });
+    expect(firstPage.items.map((item) => item.id)).toEqual([
+      'work-alpha-new',
+      'work-alpha-old',
+      'work-alpha-api',
+      'work-beta-web',
+      'work-05',
+      'work-06',
+      'work-07',
+      'work-08',
+      'work-09',
+      'work-10',
+      'work-11',
+      'work-12',
+    ]);
+    expect(secondPage).toMatchObject({ page: 2, pageSize: 12, total: 13, totalPages: 2 });
+    expect(secondPage.items.map((item) => item.id)).toEqual(['work-13']);
+    expect(filtered).toMatchObject({ page: 1, pageSize: 12, total: 2, totalPages: 1 });
+    expect(filtered.items.map((item) => item.id)).toEqual(['work-alpha-new', 'work-alpha-old']);
+  });
+
+  it('reads a nested collection envelope before projecting published images', async () => {
+    const result = await getCollectionAssets('alpha');
+
+    expect(result).toMatchObject({ page: 1, pageSize: 12, total: 2, totalPages: 1 });
+    expect(result.items.map((item) => item.id)).toEqual(['collection-new', 'collection-old']);
   });
 });

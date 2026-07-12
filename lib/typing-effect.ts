@@ -1,22 +1,18 @@
 /**
  * 打字机效果核心工具。
  *
- * 项目内 4 个打字机（useFateTypingEffect / useEnvParamsTypingEffect /
- * TweetsSection / SkillTree）都按"CJK / Latin 字符给不同节奏"控制速度，
- * 但编排差异巨大：
+ * Fate、环境遥测、推文和 SkillTree 都有打字效果，但它们的节奏与编排是
+ * 独立的产品调校：
  *   - Fate 轮询 preset + hitokoto + 多层 schedule 回调链
  *   - Env Params 随机生成 + 删除 + 重启
  *   - TweetsSection 删 + 打 + 切换
  *   - SkillTree 只打
  *
- * 因此本文件只抽出**真正共享**的 4 段：
- *   1. getTypingDelays(text) — 根据下一个字符的种类返回 type / delete 延迟
- *   2. ALPHABETIC_CHAR_RE / CJK_CHAR_RE — 字符种类判定（与上面共用）
- *   3. formatFateTextForWrap / pickNextWrapIndex — Fate 文本软换行
- *   4. 通用节奏常量（ALPHABETIC_TYPING_DELAY 等）
+ * 本模块只维护 Fate 的文本判定、节奏与软换行工具。不要把其它效果改为
+ * 复用这里的数值或正则：它们的语言范围和视觉节奏并不等价。
  *
- * 4 个 hook 共享这些常量与判定后，再无节奏漂移；各自的 setState / schedule
- * 递归仍由 hook 自己控制（因为编排形态不同，统一抽象会反向增加复杂度）。
+ * Fate 的 setState / schedule 递归仍由 hook 自己控制；把它抽象成通用状态机
+ * 会反向增加复杂度。
  */
 
 const FATE_BREAK_PUNCTUATION = /[,.!?;:，。！？；：、]/;
