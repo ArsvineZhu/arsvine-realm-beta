@@ -19,6 +19,13 @@ function required(name) {
   return value;
 }
 
+function redactCliSecrets(message) {
+  return message
+    .replace(/(-i\s+)\S+/g, '$1[REDACTED]')
+    .replace(/(-k\s+)\S+/g, '$1[REDACTED]')
+    .replace(/(--token\s+)\S+/g, '$1[REDACTED]');
+}
+
 function clientArgs(region) {
   const values = ['--init-skip', '--disable-log', '-e', `cos.${region}.myqcloud.com`, '-i', required('COS_SECRET_ID'), '-k', required('COS_SECRET_KEY')];
   if (process.env.COS_SESSION_TOKEN) values.push('--token', process.env.COS_SESSION_TOKEN);
@@ -74,7 +81,9 @@ async function main() {
   const privateRegion = required('COS_PRIVATE_REGION');
 
   const uploadCmd = forceFull ? 'cp' : 'sync';
-  const uploadFlags = forceFull ? ['-r'] : ['--exclude', 'current.json', '--exclude', 'current.next.json'];
+  const uploadFlags = forceFull
+    ? ['-r']
+    : ['-r', '--exclude', 'current.json', '--exclude', 'current.next.json'];
   await cos(publicRegion, [uploadCmd, path.join(root, 'dist', 'cos-upload', 'public-root') + path.sep, `cos://${publicBucket}/`, ...uploadFlags]);
   await cos(privateRegion, [uploadCmd, path.join(root, 'dist', 'cos-upload', 'private-root') + path.sep, `cos://${privateBucket}/`, ...uploadFlags]);
   await cos(publicRegion, ['ls', `cos://${publicBucket}/realm/site-catalog/versions/${version}/assets.json`]);
@@ -84,4 +93,7 @@ async function main() {
   console.log(`[assets:publish] ${dryRun ? 'dry-run complete for' : 'published'} ${version}`);
 }
 
-main().catch((error) => { console.error('[assets:publish] FAILED:', error.message); process.exit(1); });
+main().catch((error) => {
+  console.error('[assets:publish] FAILED:', redactCliSecrets(error instanceof Error ? error.message : String(error)));
+  process.exit(1);
+});
