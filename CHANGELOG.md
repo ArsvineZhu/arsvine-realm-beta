@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.3] — 2026-07-25
+
+### Fixed
+
+- **后台标签页 hitokoto 轮询**：`useFateTypingEffect` 的打字循环每周期拉取 `/api/hitokoto`，但此前仅受 `textVisible`（动画可见性）控制，不监听标签页可见性。用户切到后台标签页后，浏览器把 `setTimeout` 节流到 ≥1s，把 ~20s 打字周期拉成每分钟一次的持续轮询（Vercel Firewall 报告：24h 内 ~1.2k 请求、90% 命中 `/api/hitokoto`、单一 IP + 单一 JA4 指纹 + Mac UA）。现新增 `document.visibilityState` 跟踪：标签页隐藏时整个循环拆除（清超时 + abort 进行中的 hitokoto 请求 + 清空 buffer），回到前台从预设轮重新开始。与 `useRealtimeStats` / `useEnvParamsTypingEffect` 的可见性处理一致。
+
+### Security
+
+- **hitokoto IP 限流（纵深防御）**：`/api/hitokoto` 新增按 IP 限流 30 次/10 分钟，复用既有 `enforceRateLimit` 工具。真实活跃用户打到 origin 约 2 次/10 分钟（edge `s-maxage=300` 缓存 + 60s 进程内缓存），15x 余量，仅拦截绕过缓存的突发爬虫/脚本。超出时返回 `429 { error: 'rate_limited' }`，带 `Cache-Control: private, no-store` + `Retry-After`，避免被 edge 缓存误伤其他用户。
+
+### Tests
+
+- 新增 `tests/features/hud/useTypingEffect.test.tsx` 可见性暂停用例。
+- 新增 `tests/shared/hitokoto-handler.test.ts` 限流用例（成功 / 429 / unknown bucket）。
+
 ## [2.0.2] — 2026-07-25
 
 ### Security
@@ -67,6 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 完整的性能分级（性能分数 → 特效启用/禁用）
 - 全面测试套件（Vitest + Testing Library，400+ 测试）
 
+[2.0.3]: https://github.com/Arsvine-Realm-Dev-Team/arsvine-realm/compare/v2.0.2...v2.0.3
 [2.0.2]: https://github.com/Arsvine-Realm-Dev-Team/arsvine-realm/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/Arsvine-Realm-Dev-Team/arsvine-realm/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/Arsvine-Realm-Dev-Team/arsvine-realm/releases/tag/v2.0.0
