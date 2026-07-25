@@ -1,4 +1,5 @@
-import { jsonResponse } from './http';
+import { enforceRateLimit } from '@/shared/lib/content/rate-limit';
+import { getClientAddress, jsonResponse } from './http';
 
 /**
  * 一言代理 (https://developer.hitokoto.cn/sentence/)
@@ -16,8 +17,12 @@ import { jsonResponse } from './http';
  *
  * 句源约束：c=d|i|k（文学/诗词/哲学），长度 10–30。
  *
+ * 限流（纵深防御）：edge 缓存失效时，按 IP 限流 30 次/10 分钟，拦截绕过缓存
+ * 的突发爬虫/脚本。真实活跃用户打到 origin 约 2 次/10 分钟，不会触发。
+ *
  * 响应：
  *  - 200 { text: string }      —— 成功（含缓存）
+ *  - 429 { error: 'rate_limited' } —— 超出 IP 限流（Retry-After 秒）
  *  - 502 { error: 'upstream_unavailable' } —— 上游失败 / 超时 / 空内容
  *
  * 客户端按 HTTP 状态判断即可，不需要解析 error 字段。
@@ -27,11 +32,28 @@ const UPSTREAM =
   'https://v1.hitokoto.cn/?c=d&c=i&c=k&min_length=10&max_length=30&encode=json&charset=utf-8';
 const CACHE_TTL_MS = 60_000;
 const FETCH_TIMEOUT_MS = 5_000;
+const RATE_LIMIT_MAX = 30;
+const RATE_LIMIT_WINDOW_MS = 600_000; // 10 min
 
-// 进程内缓存：开发热重载会重置；生产 Vercel serverless 冷启动也会重置 — 都可接受
+// 进程内缓存：开发热重载会重置；生产 Vercel serverless 冷启动也会重置 - 都可接受
 let cache: { text: string; expiresAt: number } | null = null;
 
-export default async function handler() {
+export default async function handler(request: Request) {
+  const limiter = await enforceRateLimit(
+    `hitokoto:${getClientAddress(request)}`,
+    RATE_LIMIT_MAX,
+    RATE_LIMIT_WINDOW_MS,
+  );
+  if (!limiter.ok) {
+    return jsonResponse({ error: 'rate_limited' }, {
+      status: 429,
+      headers: {
+        'Cache-Control': 'private, no-store',
+        'Retry-After': String(Math.ceil(limiter.retryAfterMs / 1000)),
+      },
+    });
+  }
+
   if (cache && cache.expiresAt > Date.now()) {
     return jsonResponse({ text: cache.text }, {
       headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600' },

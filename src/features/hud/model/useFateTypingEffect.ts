@@ -16,6 +16,11 @@ import {
  * 一句一言之后立刻回到预设，是为了避开 /api/hitokoto 的 60s 进程内缓存——
  * 连续多次拉到同一句会让用户觉得"中文反复出现"。一言句子停留时间也比预设
  * 中文更长（HITOKOTO_PAUSE_AFTER_TYPE），让短句的呼吸感更明显。
+ *
+ * 页面可见性：标签页切到后台时整个循环暂停（清超时 + abort 进行中的 hitokoto
+ * 请求 + 清空 buffer），避免后台标签页被浏览器节流的 setTimeout 拉成"每分钟
+ * 一次"的持续轮询。回到前台后从预设轮重新开始。与 useRealtimeStats /
+ * useEnvParamsTypingEffect 的可见性处理保持一致。
  */
 const HITOKOTO_PER_CYCLE = 1;
 const HITOKOTO_PAUSE_AFTER_TYPE = 4000; // ms，比预设的 1500 长，给短句更长停留
@@ -25,8 +30,21 @@ export function useFateTypingEffect(textVisible: boolean): FateTypingState {
   const [displayedFateText, setDisplayedFateText] = useState('');
   const isFateTypingActive = textVisible;
 
+  // 标签页隐藏时暂停整个打字循环（含 hitokoto 轮询）。visibilitychange 在客户端
+  // 才有意义；effect 仅在客户端运行，访问 document 安全。mount 时 sync() 一次
+  // 覆盖"页面在后台标签页打开"的初始场景。
+  const [docHidden, setDocHidden] = useState(false);
   useEffect(() => {
-    if (!textVisible) return;
+    const sync = () => setDocHidden(document.hidden);
+    sync();
+    document.addEventListener('visibilitychange', sync);
+    return () => document.removeEventListener('visibilitychange', sync);
+  }, []);
+
+  const active = textVisible && !docHidden;
+
+  useEffect(() => {
+    if (!active) return;
 
     const englishText = formatFateTextForWrap(tSite('taglinePrimary'));
     const chineseText = formatFateTextForWrap(tSite('taglineSecondary'));
@@ -158,7 +176,7 @@ export function useFateTypingEffect(textVisible: boolean): FateTypingState {
       timeouts = [];
       setDisplayedFateText('');
     };
-  }, [textVisible, tSite]);
+  }, [active, tSite]);
 
   return { displayedFateText, isFateTypingActive };
 }

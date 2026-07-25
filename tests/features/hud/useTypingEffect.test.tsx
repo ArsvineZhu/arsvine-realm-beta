@@ -39,6 +39,7 @@ describe('typing effect hooks', () => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
     vi.useRealTimers();
+    Object.defineProperty(document, 'hidden', { configurable: true, value: false });
   });
 
   it('aborts an in-flight hitokoto request and clears the Fate buffer when hidden', () => {
@@ -69,6 +70,37 @@ describe('typing effect hooks', () => {
       displayedFateText: '',
       isFateTypingActive: false,
     });
+  });
+
+  it('aborts the in-flight hitokoto request and clears the buffer when the tab becomes hidden', () => {
+    let requestSignal: AbortSignal | undefined;
+    const fetchMock = vi.fn((_input: string | URL | Request, init?: RequestInit) => {
+      requestSignal = init?.signal ?? undefined;
+      return new Promise<Response>(() => {});
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { result } = renderHook(
+      ({ textVisible }: { textVisible: boolean }) => useFateTypingEffect(textVisible),
+      { initialProps: { textVisible: true } },
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(6000);
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/hitokoto', expect.anything());
+    expect(requestSignal?.aborted).toBe(false);
+
+    act(() => {
+      Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+
+    expect(requestSignal?.aborted).toBe(true);
+    expect(result.current.displayedFateText).toBe('');
+    // isFateTypingActive 跟随 textVisible，不受 tab 可见性影响
+    expect(result.current.isFateTypingActive).toBe(true);
   });
 
   it('boots Env telemetry after one second and resets it when text becomes hidden', () => {

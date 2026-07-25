@@ -233,6 +233,16 @@ pnpm-workspace.yaml: patches/@react-three__fiber@9.6.1.patch
 
 升级时重新 `pnpm patch`、更新精确版本和 patch key，并保持 `tests/repo/react-three-fiber-timer-patch.test.ts` 通过。
 
+## 30. hitokoto 轮询必须在后台标签页暂停
+
+`useFateTypingEffect` 的打字循环周期性 `fetch('/api/hitokoto')`。浏览器把后台标签页的 `setTimeout` 节流到 ≥1s，会把原本 ~20s 的打字周期拉长到每分钟一次，形成持续轮询（曾导致单 IP 24h 内 ~897 次请求）。
+
+`textVisible` 只是动画序列可见性，不等于标签页可见性。循环必须额外监听 `document.visibilitychange`：隐藏时整个 effect 拆除（清超时 + abort 进行中的 hitokoto 请求 + 清空 buffer），回到前台从预设轮重新开始。与 `useRealtimeStats` / `useEnvParamsTypingEffect` 的可见性处理保持一致。
+
+不要把 `isFateTypingActive` 改成跟随 `document.hidden`——它只控制 CSS class，应跟随 `textVisible`。
+
+后端 `hitokotoHandler` 另有 IP 限流（30 次/10 分钟）作为纵深防御，拦截绕过 edge 缓存的突发爬虫。回归测试：`tests/features/hud/useTypingEffect.test.tsx`（隐藏暂停）、`tests/shared/hitokoto-handler.test.ts`（限流）。
+
 ## 维护本文件
 
 只记录已经发生且需要保留特殊实现/测试的项目陷阱。通用开发说明放入对应专题；新条目包含原因、禁止做法、必需行为和回归测试。
