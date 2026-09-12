@@ -1,8 +1,14 @@
 import { startTransition, useEffect, useState } from 'react';
 
 import { useLayoutAnchors } from '@/features/navigation/model/LayoutAnchorsContext';
-import { classifyRoutePathname } from '@/features/navigation/model/contentHashNavigation';
-import { setHudTypingOverlaySuppressed, setHudTypingRouteEnabled } from '@/shared/lib/hud-typing-visibility';
+import {
+  classifyRoutePathname,
+  createContentHashNavigationRequest,
+} from '@/features/navigation/model/contentHashNavigation';
+import {
+  setHudTypingOverlaySuppressed,
+  setHudTypingRouteEnabled,
+} from '@/shared/lib/hud-typing-visibility';
 import { markCursorTargetsDirty } from '@/shared/lib/cursor-targets';
 
 export function useWebglReadyLatch(animationsComplete: boolean) {
@@ -45,7 +51,8 @@ export function useContentHashAlignment(pathname: string, asPath: string) {
     // after a locale navigation, while retaining the Pages Router asPath fallback.
     const hash = window.location.hash.slice(1) || asPath.split('#')[1];
     if (!hash || isPending(hash)) return;
-    void align(hash);
-    return cancel;
+    const request = createContentHashNavigationRequest(hash);
+    void align(request);
+    return () => cancel(request.requestId);
   }, [align, asPath, cancel, isPending, pathname]);
 }
